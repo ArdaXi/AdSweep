@@ -31,7 +31,7 @@
 	FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 	OTHER DEALINGS IN THE SOFTWARE.
 */
-
+(function () {
 adsweep();
 
 var version = '2.0.1', mainurl, commonurl, cssurl, domain; function $(ID) {return document.getElementById(ID);}
@@ -141,3 +141,4 @@ function adsweep_YouTube(){
 }
 
 function adsweep_installCheck(){if((URL.match(/^http:\/\/(www.)?adsweep.org\/$/))){document.getElementsByTagName("BODY")[0].innerHTML += '<div style="position:absolute;top:0;right:0;background:#c00;color:#fff;display:inline;padding:2px 5px">Your AdSweep is currently active (v.'+version+')</div>';}}
+})();
