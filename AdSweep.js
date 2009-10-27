@@ -9,8 +9,6 @@
 // ==/UserScript==
 /*
 	Copyright (c) 2009 Ariën Holthuizen
-	
-	Portions  (c) 2009-2010 dbjdbj@gmail.com
 
 	Permission is hereby granted, free of charge, to any person
 	obtaining a copy of this software and associated documentation
@@ -39,7 +37,7 @@
 // NOTE! Keep them short and sweet
 //
 //-------------------------------------------------------------------------------------
-// (c) 2009-2010 by DBJ.ORG
+// Copyright (c) 2009-2010 by DBJ.ORG
 //     Usage is hereby granted to the authors of AdSweep CHROME extensions
 //     to be used only inside it, and nowhere else.
 //
@@ -50,7 +48,7 @@
 // NOTE! here error checks are *minimal*, and there are no exceptions whatsoever.
 // NOTE! this caches the results and thus works ONLY if you do not 
 //       add or remove or change nodes you have been searching for. 
-//       if you have use Q.FLUSH() ... se bellow
+//       if you have use Q.FLUSH() ... see below
 //       Which makes it ideal for CHROME extensions
 //       2009.OCT.27 dbjdbj@gmail.com  Created
 (function () {
@@ -134,62 +132,44 @@ Q.EACH ( method, selector, container )
 (function () { // begin adsweep closure
 //-------------------------------------------------------------------------------------
 
-adsweep();
-
 var version = '2.0.1', mainurl, commonurl, cssurl, domain; 
 
-function adsweep(){
 
-		if(location.href){ // why this check ?
-		
-		    // why creating global variables ?
-			window.adsweepVersion=version;
-			window.ua=navigator.userAgent;
-			window.URL = location.href;
-		    // suggestion :
-            adsweep.version="2.0.1";
-	        adsweep.ua=navigator.userAgent;
-	        adsweep.url = location.href;
-			
-			mainurl = "http://arienh4.net.nyud.net/";
-			commonurl = mainurl + "common.ads";
-			domain = document.domain.replace(/(?:.*\.)?(.*\..*)/g, "$1");
-			cssurl = mainurl + "adengine.php?site="+domain;
-			
-			// also isntead of above, do as bellow
-			adsweep.mainurl = "http://arienh4.net.nyud.net/";
-			adsweep.commonurl = mainurl + "common.ads";
-			adsweep.domain = document.domain.replace(/(?:.*\.)?(.*\..*)/g, "$1");
-			adsweep.cssurl = mainurl + "adengine.php?site="+domain;
-			
-			if(ua.match(/Chrom(ium|e)|Iron/)){
-				var countTries=0;
-				function checkDOM(){
-					if(countTries<120){
-						if(Q("HEAD") && Q("BODY")){
-								adsweep_core();
-								window.addEventListener("load", adsweep_removeAdNodes, false);
-								window.addEventListener("load", adsweep_installCheck, false);
-						} else {
-							countTries++;
-							window.setTimeout(checkDOM,250);
-						}
-					}
-				}
-				checkDOM();
-			} else if(ua.match("Gecko")) {
-				if(loaded)
-					adsweep_core();
-				window.addEventListener("load", function(){window.setTimeout(adsweep_removeAdNodes,1000);}, false);
+adsweep.version="2.0.1";
+adsweep.ua=navigator.userAgent;
+adsweep.url = location.href;
+
+adsweep.mainurl = "http://arienh4.net.nyud.net/";
+adsweep.commonurl = adsweep.mainurl + "common.ads";
+adsweep.domain = document.domain.replace(/(?:.*\.)?(.*\..*)/g, "$1");
+adsweep.cssurl = adsweep.mainurl + "adengine.php?site="+domain;
+	
+if(ua.match(/Chrom(ium|e)|Iron/)){
+	var countTries=0;
+	function checkDOM(){
+		if(countTries<120){
+			if(Q("HEAD") && Q("BODY")){
+				adsweep_core();
+				window.addEventListener("load", adsweep_removeAdNodes, false);
 				window.addEventListener("load", adsweep_installCheck, false);
-			} else if(ua.match("Opera")) {
-				if(loaded)
-					adsweep_core();
-				document.addEventListener("DOMContentLoaded", adsweep_removeAdNodes, false);
-				document.addEventListener("DOMContentLoaded", adsweep_installCheck, false);
+			} else {
+				countTries++;
+				window.setTimeout(checkDOM,250);
 			}
 		}
-} // eof adsweep()
+	}
+	checkDOM();
+} else if(ua.match("Gecko")) {
+	if(loaded)
+		adsweep_core();
+	window.addEventListener("load", function(){window.setTimeout(adsweep_removeAdNodes,1000);}, false);
+	window.addEventListener("load", adsweep_installCheck, false);
+} else if(ua.match("Opera")) {
+	if(loaded)
+		adsweep_core();
+	document.addEventListener("DOMContentLoaded", adsweep_removeAdNodes, false);
+	document.addEventListener("DOMContentLoaded", adsweep_installCheck, false);
+}
 
 function adsweep_core(){
 	function createLink(url)
@@ -209,23 +189,6 @@ function adsweep_removeAdNodes()
 	window.setTimeout(function()
 	{		
 		// AdBrite
-		/* before 
-		if(Q("A")){
-		   var anchorTags=Q("A");
-		   for(var a=0;a<anchorTags.length;a++){
-		   for(var x=0;x<anchorTags[a].attributes.length;x++){
-		    if(anchorTags[a].attributes[x].nodeName.toLowerCase()=='id'){
-		               if(anchorTags[a].attributes[x].nodeValue.indexOf("AdBriteInlineAd")!=-1){
-		               var textString=anchorTags[a].innerHTML;
-		               var newNode=document.createElement('SPAN');
-		                        newNode.innerHTML=textString;
-		                        anchorTags[a].parentNode.insertBefore(newNode,anchorTags[a]);
-		               }
-		    }
-		   }
-		   }
-		}
-		and now */
 		Q.EACH( 
 		function ( anchor ) {
 		   if ( (! anchor ) || (! anchor.parentNode)) return ;
@@ -255,7 +218,6 @@ function adsweep_removeAdNodes()
 		if(URL.match("pcwelt.de")){if(Q("A")){ var anchorTags=Q("A"); for(var a=0;a<anchorTags.length;a++){ if(anchorTags[a].innerHTML.match("mentasys")){ var hideTag=anchorTags[a].parentNode.parentNode.parentNode.parentNode.parentNode; hideTag.parentNode.removeChild(hideTag); } } } if(Q("SPAN")){ var sTags=Q("SPAN"); for(var a=0;a<sTags.length;a++){ if(sTags[a].innerHTML.match("Office Anwendung-Software")){ var hideTag=sTags[a].parentNode; hideTag.parentNode.removeChild(hideTag); } } } if(Q("SPAN")){ var sTags=Q("SPAN"); for(var a=0;a<sTags.length;a++){ if(sTags[a].innerHTML.match("Ligatus")){ var hideTag=sTags[a].parentNode; hideTag.parentNode.removeChild(hideTag); } } } if(Q("H1")){ var h1Tags=Q("H1"); for(var a=0;a<h1Tags.length;a++){ if(h1Tags[a].innerHTML.match(/^Ligatus/)){ var hideTag=h1Tags[a].parentNode.parentNode.parentNode.parentNode; hideTag.parentNode.removeChild(hideTag); } } } }
 		if(URL.match("squidoo.com")){window.setTimeout(function(){if(Q("H2")){var hTags=Q("H2");for(var a=0;a<hTags.length;a++){if(hTags[a].innerHTML.match("Great Stuff on Amazon")){hTags[a].parentNode.parentNode.removeChild(hTags[a].parentNode);}}}},50);}
 		if(URL.match(/lifehacker\.com\/$/m)){if(Q("link")){var tag=Q("link")[1];var tagC = tag.cloneNode(true);tagC.href="http://tags.lifehacker.com/assets/minify.php?files=/assets/g4.lifehacker.com/css/style.css";tag.parentNode.replaceChild(tagC, tag);}}
-		// if(URL.match("facepunch.com")){var body=Q("body")[1];var tag=body.getElementsByTagName("script")[0];if(tag.src="http://facepunchcom.skimlinks.com/api/skimlinks.js"){tag.parentNode.removeChild(tag);}}
 		if(URL.match("facepunch.com"))
 		{
 		  var  tag=Q("script[src='http://facepunchcom.skimlinks.com/api/skimlinks.js']");
@@ -271,8 +233,6 @@ function adsweep_YouTube(){
 	return regex.test(this) ? this.replace(regex, "$1"+q+"="+v) : this+"&"+q+"="+v;
 	}
 	
-    // function $(ID) {return document.getElementById(ID);}
-    // bellow was apparently the *only* usage of the above function --- DBJ
 	var mp = Q("#movie_player", document.body ) ;
 	if (mp)
 	{
@@ -296,7 +256,6 @@ function adsweep_YouTube(){
 
 function adsweep_installCheck(){
     if((URL.match(/^http:\/\/(www.)?adsweep.org\/$/))){
-           // DBJ 2009.OCT.27 -- removed -- Q("BODY")[0].innerHTML += 
            document.body.innerHTML += 
            '<div style="position:absolute;top:0;right:0;background:#c00;color:#fff;display:inline;padding:2px 5px">Your AdSweep is currently active (v.'+version+')</div>';
            }
