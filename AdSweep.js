@@ -8,7 +8,7 @@
 // @run-at document-start
 // ==/UserScript==
 /*
-	Copyright (c) 2009 Ariën Holthuizen
+	Copyright (c) 2009 Ariën Holthuizen, and Dusan B. Jovanovic
 
 	Permission is hereby granted, free of charge, to any person
 	obtaining a copy of this software and associated documentation
@@ -120,9 +120,9 @@ Q.NULL = function ( selector, container )
 Q.EACH = function ( method, selector, container )
 {
   if ( "function" !== typeof method ) return ;
-  var list = Q( selector, container ), j = list.length ;
-  
-  for ( ; j < list.length; j++ ){
+  var list = Q( selector, container );
+  if ( list )
+  for (var j = list.length ; j < list.length; j++ ){
           method( list[j] ) ; // element found is passed as first argument
   }
   
@@ -130,12 +130,67 @@ Q.EACH = function ( method, selector, container )
 
 })(); // end of Q closure
 //-------------------------------------------------------------------------------------
+/*
+* Author: dbjdbj@gmail.com
+* Copyright (c) 2009 by DBJ.ORG
+* MIT Licence
+*
+* Based on :
+* http://javascript.nwbox.com/ContentLoaded/
+* http://dean.edwards.name/weblog/2006/06/again/
+*
+*/
+function on_content_loaded(FP) 
+{
+// FP	:   function reference
+    var w = window, d = w.document,
+		D = 'DOMContentLoaded',
+		u = w.navigator.userAgent.toLowerCase(),
+		v = parseFloat(u.match(/.+(?:rv|it|ml|ra|ie)[\/: ]([\d.]+)/)[1]);
+
+    function init(e) {
+        if (!document.loaded) {
+            document.loaded = true;
+            // pass a fake event if needed
+            FP((e.type && e.type == D) ? e : {
+                type: D,
+                target: d,
+                eventPhase: 0,
+                currentTarget: d,
+                timeStamp: +new Date,
+                eventType: e.type || e
+            });
+        }
+    }
+
+    if (d.addEventListener &&
+		(/opera\//.test(u) && v > 9) ||
+		(/gecko\//.test(u) && v >= 1.8) ||
+		(/khtml\//.test(u) && v >= 4.0) ||
+		(/webkit\//.test(u) && v >= 525.13)) {
+
+        d.addEventListener(D,
+			function(e) {
+			    d.removeEventListener(D, arguments.callee, false);
+			    init(e);
+			}, false
+		);
+    } else {
+    w.alert("AdSweep ERROR: Unsupported browser!\b" + u + 
+        "\n\nSupported hosts are:\n--------------------------------------\n" +
+		"\nopera, v > 9" +
+		"\ngecko, v >= 1.8" +
+		"\nkhtml, v >= 4.0" +
+		"\nwebkit, v >= 525.13" );
+    }
+} // eof on_content_loaded()
+//-------------------------------------------------------------------------------------
 (function () { // begin adsweep closure
 //-------------------------------------------------------------------------------------
 var _DEBUG  = true ; // DBJ added
 
 var adsweep = {
-    version     :  "2.0.1" ,
+    version     :  "2.0.1" , // we have to increment versions "automagically", how do we use GIT for that?
     ua          :  navigator.userAgent ,
     url         :  location.href ,
     mainurl     :  "http://arienh4.net.nyud.net/" 
@@ -149,7 +204,7 @@ var adsweep = {
 		                link.rel = "stylesheet";
 		                link.type = "text/css";
 		                link.href = url_;
-		                Q("head")[0].appendChild(link);
+		                document.documentElement.firstChild.appendChild(link);
 	                }
 	                createLink( adsweep.commonurl)
 	                createLink( adsweep.cssurl   );
@@ -164,15 +219,28 @@ var adsweep = {
     }                
     
 //------------------------------------------------------------------------------------------
-try {
+ if ( _DEBUG ) {
+ window.ADSWEEP = adsweep;
+ }
 //------------------------------------------------------------------------------------------
 
-if ( _DEBUG ) {
-    adsweep.core();
-	adsweep_removeAdNodes();
-	adsweep.installCheck();
-}
-	
+// DBJ: only this should be enough for a proper startup
+   on_content_loaded( function () {
+            try {
+                adsweep.core();
+	            adsweep.installCheck();
+	            // the two above ahould be one function and also a renamed function
+	            // for example : adsweep.init()
+	            var tid = setTimeout( function () {
+	                clearTimeout(tid); delete tid;
+	                adsweep_removeAdNodes();
+	            },10);
+            } catch(x) {
+               alert("Exception in adsweep constructor:\n\n" + x ) ;
+            }
+	    } 
+	) ;
+/*	
 if(adsweep.ua.match(/Chrom(ium|e)|Iron/)){
 	var countTries=0;
 	function checkDOM(){
@@ -199,17 +267,17 @@ if(adsweep.ua.match(/Chrom(ium|e)|Iron/)){
 	document.addEventListener("DOMContentLoaded", adsweep_removeAdNodes, false);
 	document.addEventListener("DOMContentLoaded", adsweep.installCheck, false);
 }
-
-} catch(x) {
-   alert("\nDebugging\nException in adsweep constructor:\n\n" + x ) ;
-}
+*/
 
 //--------------------------------------------------------------------------------------------------
 function adsweep_removeAdNodes()
 {
-	adsweep_YouTube();
-	window.setTimeout(function()
-	{		
+    if ( Q("#movie_player", document.body ) ) // DBJ: added
+	    adsweep_YouTube();
+//  DBJ: above 'movie_player' is very common ID, so this will sweep possibly many other movie players ?	    
+//  DBJ: the whole call to adsweep_removeAdNodes() is inside separate timeout
+//	window.setTimeout(function()
+//	{		
 		// AdBrite
 		Q.EACH( 
 		function ( anchor ) {
@@ -229,7 +297,8 @@ function adsweep_removeAdNodes()
 	
 		// VibrantMedia
 		if(Q("A")){var anchorTags=Q("A");for(var a=0;a<anchorTags.length;a++){for(var x=0;x<anchorTags[a].attributes.length;x++){if(anchorTags[a].attributes[x].nodeName.toLowerCase()=='class') {if(anchorTags[a].attributes[x].nodeValue=='iAs'){var textString=anchorTags[a].innerHTML;var newNode=document.createElement('SPAN');newNode.innerHTML=textString;anchorTags[a].parentNode.insertBefore(newNode,anchorTags[a]);anchorTags[a].parentNode.removeChild(anchorTags[a]);}}}}}
-	},50);
+
+//	},50);
 	
 		// Hide content using Javascript on specific sites once the page is loaded
 	
