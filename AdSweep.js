@@ -74,7 +74,8 @@
 Q = function ( selector, container )
 {
   var list = [] ;
-  if (("string" === typeof selector  ) && ("object" === typeof container ))
+  if ("string" !== typeof selector  ) return list ;
+  if ("object" !== typeof (container || document))  return list ;
       list = cached_result( cached_selections ( container || document ), selector ) ;
   return list.length > 0 ? list : null ;
 }
@@ -116,7 +117,7 @@ Q.NULL = function ( selector, container )
   return Q(selector, container ).length > 0 ;
 }
 // for each element found call the function given
-Q.EACH ( method, selector, container )
+Q.EACH = function ( method, selector, container )
 {
   if ( "function" !== typeof method ) return ;
   var list = Q( selector, container ), j = list.length ;
@@ -131,27 +132,55 @@ Q.EACH ( method, selector, container )
 //-------------------------------------------------------------------------------------
 (function () { // begin adsweep closure
 //-------------------------------------------------------------------------------------
+var _DEBUG  = true ; // DBJ added
 
-var version = '2.0.1', mainurl, commonurl, cssurl, domain; 
+var adsweep = {
+    version     :  "2.0.1" ,
+    ua          :  navigator.userAgent ,
+    url         :  location.href ,
+    mainurl     :  "http://arienh4.net.nyud.net/" 
+    } ;
+    adsweep.commonurl   =  adsweep.mainurl + "common.ads" ;
+    adsweep.domain      =  document.domain.replace(/(?:.*\.)?(.*\..*)/g, "$1") ;
+    adsweep.cssurl      =  adsweep.mainurl + "adengine.php?site : "+ adsweep.domain ;
+    
+    adsweep.core        = function (){ function createLink(url_) {
+		                var link = document.createElement('link');
+		                link.rel = "stylesheet";
+		                link.type = "text/css";
+		                link.href = url_;
+		                Q("head")[0].appendChild(link);
+	                }
+	                createLink( adsweep.commonurl)
+	                createLink( adsweep.cssurl   );
+                } ;
+   adsweep.installCheck    = function (){
+    if((adsweep.url.match(/^http:\/\/(www.)?adsweep.org\/$/))){
+           document.body.innerHTML += 
+           '<div style="position:absolute;top:0;right:0;background:#c00;color:#fff;display:inline;padding:2px 5px">Your AdSweep is currently active (v.'
+           + adsweep.version +
+           ')</div>';
+           }
+    }                
+    
+//------------------------------------------------------------------------------------------
+try {
+//------------------------------------------------------------------------------------------
 
-
-adsweep.version="2.0.1";
-adsweep.ua=navigator.userAgent;
-adsweep.url = location.href;
-
-adsweep.mainurl = "http://arienh4.net.nyud.net/";
-adsweep.commonurl = adsweep.mainurl + "common.ads";
-adsweep.domain = document.domain.replace(/(?:.*\.)?(.*\..*)/g, "$1");
-adsweep.cssurl = adsweep.mainurl + "adengine.php?site="+domain;
+if ( _DEBUG ) {
+    adsweep.core();
+	adsweep_removeAdNodes();
+	adsweep.installCheck();
+}
 	
-if(ua.match(/Chrom(ium|e)|Iron/)){
+if(adsweep.ua.match(/Chrom(ium|e)|Iron/)){
 	var countTries=0;
 	function checkDOM(){
 		if(countTries<120){
 			if(Q("HEAD") && Q("BODY")){
-				adsweep_core();
+				adsweep.core();
 				window.addEventListener("load", adsweep_removeAdNodes, false);
-				window.addEventListener("load", adsweep_installCheck, false);
+				window.addEventListener("load", adsweep.installCheck, false);
 			} else {
 				countTries++;
 				window.setTimeout(checkDOM,250);
@@ -159,30 +188,23 @@ if(ua.match(/Chrom(ium|e)|Iron/)){
 		}
 	}
 	checkDOM();
-} else if(ua.match("Gecko")) {
-	if(loaded)
-		adsweep_core();
+} else if(adsweep.ua.match("Gecko")) {
+	if(loaded) // DBJ: where is this variable comming from ?
+		adsweep.core();
 	window.addEventListener("load", function(){window.setTimeout(adsweep_removeAdNodes,1000);}, false);
-	window.addEventListener("load", adsweep_installCheck, false);
-} else if(ua.match("Opera")) {
+	window.addEventListener("load", adsweep.installCheck, false);
+} else if(adsweep.ua.match("Opera")) {
 	if(loaded)
-		adsweep_core();
+		adsweep.core();
 	document.addEventListener("DOMContentLoaded", adsweep_removeAdNodes, false);
-	document.addEventListener("DOMContentLoaded", adsweep_installCheck, false);
+	document.addEventListener("DOMContentLoaded", adsweep.installCheck, false);
 }
 
-function adsweep_core(){
-	function createLink(url)
-	{
-		var link = document.createElement('link');
-		link.rel = "stylesheet";
-		link.type = "text/css";
-		link.href = url;
-		Q("head")[0].appendChild(link);
-	}
-	createLink(commonurl)
-	createLink(cssurl);
+} catch(x) {
+   alert("\nDebugging\nException in adsweep constructor:\n\n" + x ) ;
 }
+
+//--------------------------------------------------------------------------------------------------
 function adsweep_removeAdNodes()
 {
 	adsweep_YouTube();
@@ -211,14 +233,14 @@ function adsweep_removeAdNodes()
 	
 		// Hide content using Javascript on specific sites once the page is loaded
 	
-		if(URL.match("distrowatch.com")){ if(Q("TABLE")){ if(Q("TABLE")[0].nextSibling){ if(Q("TABLE")[0].nextSibling.nextSibling){ var tbTag=Q("TABLE")[0].nextSibling.nextSibling; if(tbTag.innerHTML){ if(tbTag.innerHTML.match("pagead2")){ if(tbTag.tagName){ tbTag.style.display='none'; } } } } } } if(Q("TD")){ var tdTag=Q("TD"); for(a=0;a<tdTag.length;a++){ if(tdTag[a].innerHTML){ if(tdTag[a].innerHTML.match(/^Sponsored Message$|^???????????? ??????$|^????????? ?????$|^?????????? ???????????$|^Wiadomosc sponsorowana$|^Pesan Sponsor$|^?????? ????? ????$|^????$|^Remeju Žinute$|^?????? ?????$|^Sponzorji - sporocila$|^Gesponsord Bericht$|^Message de pub$|^Mensaje patrocinado$|^Sponsorennachricht$|^Sponsoroitu viesti$|^???????????? ?????????$|^????$|^Sponsorun Mesaji$|^Missatge patrocinat$|^???????? ??????$|^????µa ???????$|^???????????? ????????$|^Szponzorált üzenet$|^???? ?? ?????$|^Mensagem de Publicidade$|^Sponsoreeritud teade$|^Sponsoreret Besked$|^???? ????????$|^???????????? ????????????$|^Messaggio sponsorizzato$|^Sponzorske poruke$/)){ if(tdTag[a].parentNode){ if(tdTag[a].parentNode.parentNode){ if(tdTag[a].parentNode.parentNode.parentNode){ if(tdTag[a].parentNode.parentNode.parentNode.parentNode){ if(tdTag[a].parentNode.parentNode.parentNode.parentNode.parentNode){ var hideTag=tdTag[a].parentNode.parentNode.parentNode.parentNode.parentNode; if(hideTag.tagName){ hideTag.style.display='none'; } } } } } } } } } } if(Q("TH")){ var thTags=Q("TH"); for(a=0;a<thTags.length;a++){ if(thTags[a].innerHTML.match(/^Linux Netbooks$|^???????????$|^????????$|^Advertisement$|^??????????$|^Reklamy$|^Iklan$|^??????$|^??$|^Reklam$|^?????$|^Reklama$|^Advertentie$|^Oglaševanje$|^Advertisement$|^Anuncions$|^Annonce$|^Werbung$|^Mainos$|^Anunci$|^??af?µ?s?$|^Hirdetés$|^???????$|^??$|^Publicidade$|^????????$|^Reklaam$|^??????$|^?????????$|^Reklame$|^???????$|^???????$|^Pubblicità$|^Oglas$/)){ if(thTags[a].parentNode){ if(thTags[a].parentNode.parentNode){ var hideTag=thTags[a].parentNode.parentNode; if(hideTag.tagName){ hideTag.style.display='none'; } } } } } } if(Q("A")){ var aTags=Q("A"); for(var a=0;a<aTags.length;a++){ if(aTags[a].innerHTML.match(/vpslink|osdisc|3cx|Acunetix/)){ if(aTags[a].parentNode){ if(aTags[a].parentNode.parentNode){ if(aTags[a].parentNode.parentNode.parentNode){ if(aTags[a].parentNode.parentNode.parentNode.parentNode){ var hideTag=aTags[a].parentNode.parentNode.parentNode.parentNode; if(hideTag.tagName){ hideTag.style.display='none'; } if(hideTag.nextSibling){ if(hideTag.nextSibling.nextSibling){ var hideTag2=hideTag.nextSibling.nextSibling; if(hideTag2.tagName){ hideTag2.style.display='none'; } } } } } } } } if(aTags[a].innerHTML){ if(aTags[a].innerHTML.match(/linuxidentity|linuxcd/)){ if(aTags[a].parentNode){ if(aTags[a].parentNode.parentNode){ if(aTags[a].parentNode.parentNode.parentNode){ if(aTags[a].parentNode.parentNode.parentNode.parentNode){ var hideTag=aTags[a].parentNode.parentNode.parentNode.parentNode; hideTag.style.display='none'; if(hideTag.nextSibling){ if(hideTag.nextSibling.tagName){ var hideTag2=hideTag.nextSibling; hideTag2.style.display='none'; } } } } } } } } } } if(Q("FORM")){ var formTags=Q("FORM"); for(a=0;a<formTags.length;a++){ for(var x=0;x<formTags[a].attributes.length;x++){ if(formTags[a].attributes[x].nodeName.toLowerCase()=='name') { if(formTags[a].attributes[x].nodeValue=='Dataspan'){ if(formTags[a].parentNode){ if(formTags[a].parentNode.parentNode){ if(formTags[a].parentNode.parentNode.parentNode){ if(formTags[a].parentNode.parentNode.parentNode.parentNode){ if(formTags[a].parentNode.parentNode.parentNode.parentNode.previousSibling){ if(formTags[a].parentNode.parentNode.parentNode.parentNode.previousSibling.previousSibling){ hideTag=formTags[a].parentNode.parentNode.parentNode.parentNode.previousSibling.previousSibling; if(hideTag.tagName){ hideTag.style.display='none'; } } } } } } } } } } } } Q("BODY")[0].style.display='block'; }
-		if(URL.match("forums.futura-sciences.com")){var nodes=Q.CLASS("page");for(var i=0;i<nodes.length;i++){if(nodes[i].innerHTML){if(nodes[i].innerHTML.match('Liens sponsoris')){nodes[i].parentNode.removeChild(nodes[i]);}}} var nodes=Q("TD");for(var i=0;i<nodes.length;i++){if(nodes[i].innerHTML){if(nodes[i].innerHTML.match('Futura Sciences n\'est pas responsable du contenu de ces publicit')){var node=nodes[i].parentNode.parentNode.parentNode.parentNode.parentNode.getElementsByTagName("DIV")[0];node.parentNode.removeChild(node);}}}}
-		if(URL.match("mashable.com")){if(Q("H3")){ var h3Tags=Q("H3"); for(var a=0;a<h3Tags.length;a++){ if(h3Tags[a].innerHTML=="Mashable Partners"){ var hideElement=h3Tags[a].parentNode.parentNode; hideElement.parentNode.removeChild(hideElement); } } } if(Q("H3")){ var h3Tags=Q("H3"); for(var a=0;a<h3Tags.length;a++){ if(h3Tags[a].innerHTML=="Sun Startup Essentials"){ var hideElement=h3Tags[a].parentNode.parentNode; hideElement.parentNode.removeChild(hideElement); } } } if(Q("P")){ var pTags=Q("P"); for(var a=0;a<pTags.length;a++){ if(pTags[a].innerHTML=="Sponsored By:"){ pTags[a].parentNode.removeChild(pTags[a]); } } } if(Q("A")){ var aTags=Q("A"); for(var a=0;a<aTags.length;a++){ if(aTags[a].innerHTML=="Advertise Here"){ var hideElement=aTags[a].parentNode.parentNode.parentNode; hideElement.parentNode.removeChild(hideElement); } } } if(Q("STRONG")){ var strongTags=Q("STRONG"); for(var a=0;a<strongTags.length;a++){ if(strongTags[a].innerHTML=="Twitter Brand Sponsors"){ var hideElement=strongTags[a].parentNode.parentNode.parentNode.parentNode.parentNode; hideElement.parentNode.removeChild(hideElement);}}}}
-		if(URL.match("my.opera.com/community/forums")){if(Q.CLASS('fpost')){var posts = Q.CLASS('fpost');for(var a=0;a<posts.length;a++){if(posts[a].innerHTML.match("882703")){$('content').removeChild(posts[a]);}}}}
-		if(URL.match("pcwelt.de")){if(Q("A")){ var anchorTags=Q("A"); for(var a=0;a<anchorTags.length;a++){ if(anchorTags[a].innerHTML.match("mentasys")){ var hideTag=anchorTags[a].parentNode.parentNode.parentNode.parentNode.parentNode; hideTag.parentNode.removeChild(hideTag); } } } if(Q("SPAN")){ var sTags=Q("SPAN"); for(var a=0;a<sTags.length;a++){ if(sTags[a].innerHTML.match("Office Anwendung-Software")){ var hideTag=sTags[a].parentNode; hideTag.parentNode.removeChild(hideTag); } } } if(Q("SPAN")){ var sTags=Q("SPAN"); for(var a=0;a<sTags.length;a++){ if(sTags[a].innerHTML.match("Ligatus")){ var hideTag=sTags[a].parentNode; hideTag.parentNode.removeChild(hideTag); } } } if(Q("H1")){ var h1Tags=Q("H1"); for(var a=0;a<h1Tags.length;a++){ if(h1Tags[a].innerHTML.match(/^Ligatus/)){ var hideTag=h1Tags[a].parentNode.parentNode.parentNode.parentNode; hideTag.parentNode.removeChild(hideTag); } } } }
-		if(URL.match("squidoo.com")){window.setTimeout(function(){if(Q("H2")){var hTags=Q("H2");for(var a=0;a<hTags.length;a++){if(hTags[a].innerHTML.match("Great Stuff on Amazon")){hTags[a].parentNode.parentNode.removeChild(hTags[a].parentNode);}}}},50);}
-		if(URL.match(/lifehacker\.com\/$/m)){if(Q("link")){var tag=Q("link")[1];var tagC = tag.cloneNode(true);tagC.href="http://tags.lifehacker.com/assets/minify.php?files=/assets/g4.lifehacker.com/css/style.css";tag.parentNode.replaceChild(tagC, tag);}}
-		if(URL.match("facepunch.com"))
+		if(adsweep.url.match("distrowatch.com")){ if(Q("TABLE")){ if(Q("TABLE")[0].nextSibling){ if(Q("TABLE")[0].nextSibling.nextSibling){ var tbTag=Q("TABLE")[0].nextSibling.nextSibling; if(tbTag.innerHTML){ if(tbTag.innerHTML.match("pagead2")){ if(tbTag.tagName){ tbTag.style.display='none'; } } } } } } if(Q("TD")){ var tdTag=Q("TD"); for(a=0;a<tdTag.length;a++){ if(tdTag[a].innerHTML){ if(tdTag[a].innerHTML.match(/^Sponsored Message$|^???????????? ??????$|^????????? ?????$|^?????????? ???????????$|^Wiadomosc sponsorowana$|^Pesan Sponsor$|^?????? ????? ????$|^????$|^Remeju Žinute$|^?????? ?????$|^Sponzorji - sporocila$|^Gesponsord Bericht$|^Message de pub$|^Mensaje patrocinado$|^Sponsorennachricht$|^Sponsoroitu viesti$|^???????????? ?????????$|^????$|^Sponsorun Mesaji$|^Missatge patrocinat$|^???????? ??????$|^????µa ???????$|^???????????? ????????$|^Szponzorált üzenet$|^???? ?? ?????$|^Mensagem de Publicidade$|^Sponsoreeritud teade$|^Sponsoreret Besked$|^???? ????????$|^???????????? ????????????$|^Messaggio sponsorizzato$|^Sponzorske poruke$/)){ if(tdTag[a].parentNode){ if(tdTag[a].parentNode.parentNode){ if(tdTag[a].parentNode.parentNode.parentNode){ if(tdTag[a].parentNode.parentNode.parentNode.parentNode){ if(tdTag[a].parentNode.parentNode.parentNode.parentNode.parentNode){ var hideTag=tdTag[a].parentNode.parentNode.parentNode.parentNode.parentNode; if(hideTag.tagName){ hideTag.style.display='none'; } } } } } } } } } } if(Q("TH")){ var thTags=Q("TH"); for(a=0;a<thTags.length;a++){ if(thTags[a].innerHTML.match(/^Linux Netbooks$|^???????????$|^????????$|^Advertisement$|^??????????$|^Reklamy$|^Iklan$|^??????$|^??$|^Reklam$|^?????$|^Reklama$|^Advertentie$|^Oglaševanje$|^Advertisement$|^Anuncions$|^Annonce$|^Werbung$|^Mainos$|^Anunci$|^??af?µ?s?$|^Hirdetés$|^???????$|^??$|^Publicidade$|^????????$|^Reklaam$|^??????$|^?????????$|^Reklame$|^???????$|^???????$|^Pubblicità$|^Oglas$/)){ if(thTags[a].parentNode){ if(thTags[a].parentNode.parentNode){ var hideTag=thTags[a].parentNode.parentNode; if(hideTag.tagName){ hideTag.style.display='none'; } } } } } } if(Q("A")){ var aTags=Q("A"); for(var a=0;a<aTags.length;a++){ if(aTags[a].innerHTML.match(/vpslink|osdisc|3cx|Acunetix/)){ if(aTags[a].parentNode){ if(aTags[a].parentNode.parentNode){ if(aTags[a].parentNode.parentNode.parentNode){ if(aTags[a].parentNode.parentNode.parentNode.parentNode){ var hideTag=aTags[a].parentNode.parentNode.parentNode.parentNode; if(hideTag.tagName){ hideTag.style.display='none'; } if(hideTag.nextSibling){ if(hideTag.nextSibling.nextSibling){ var hideTag2=hideTag.nextSibling.nextSibling; if(hideTag2.tagName){ hideTag2.style.display='none'; } } } } } } } } if(aTags[a].innerHTML){ if(aTags[a].innerHTML.match(/linuxidentity|linuxcd/)){ if(aTags[a].parentNode){ if(aTags[a].parentNode.parentNode){ if(aTags[a].parentNode.parentNode.parentNode){ if(aTags[a].parentNode.parentNode.parentNode.parentNode){ var hideTag=aTags[a].parentNode.parentNode.parentNode.parentNode; hideTag.style.display='none'; if(hideTag.nextSibling){ if(hideTag.nextSibling.tagName){ var hideTag2=hideTag.nextSibling; hideTag2.style.display='none'; } } } } } } } } } } if(Q("FORM")){ var formTags=Q("FORM"); for(a=0;a<formTags.length;a++){ for(var x=0;x<formTags[a].attributes.length;x++){ if(formTags[a].attributes[x].nodeName.toLowerCase()=='name') { if(formTags[a].attributes[x].nodeValue=='Dataspan'){ if(formTags[a].parentNode){ if(formTags[a].parentNode.parentNode){ if(formTags[a].parentNode.parentNode.parentNode){ if(formTags[a].parentNode.parentNode.parentNode.parentNode){ if(formTags[a].parentNode.parentNode.parentNode.parentNode.previousSibling){ if(formTags[a].parentNode.parentNode.parentNode.parentNode.previousSibling.previousSibling){ hideTag=formTags[a].parentNode.parentNode.parentNode.parentNode.previousSibling.previousSibling; if(hideTag.tagName){ hideTag.style.display='none'; } } } } } } } } } } } } Q("BODY")[0].style.display='block'; }
+		if(adsweep.url.match("forums.futura-sciences.com")){var nodes=Q.CLASS("page");for(var i=0;i<nodes.length;i++){if(nodes[i].innerHTML){if(nodes[i].innerHTML.match('Liens sponsoris')){nodes[i].parentNode.removeChild(nodes[i]);}}} var nodes=Q("TD");for(var i=0;i<nodes.length;i++){if(nodes[i].innerHTML){if(nodes[i].innerHTML.match('Futura Sciences n\'est pas responsable du contenu de ces publicit')){var node=nodes[i].parentNode.parentNode.parentNode.parentNode.parentNode.getElementsByTagName("DIV")[0];node.parentNode.removeChild(node);}}}}
+		if(adsweep.url.match("mashable.com")){if(Q("H3")){ var h3Tags=Q("H3"); for(var a=0;a<h3Tags.length;a++){ if(h3Tags[a].innerHTML=="Mashable Partners"){ var hideElement=h3Tags[a].parentNode.parentNode; hideElement.parentNode.removeChild(hideElement); } } } if(Q("H3")){ var h3Tags=Q("H3"); for(var a=0;a<h3Tags.length;a++){ if(h3Tags[a].innerHTML=="Sun Startup Essentials"){ var hideElement=h3Tags[a].parentNode.parentNode; hideElement.parentNode.removeChild(hideElement); } } } if(Q("P")){ var pTags=Q("P"); for(var a=0;a<pTags.length;a++){ if(pTags[a].innerHTML=="Sponsored By:"){ pTags[a].parentNode.removeChild(pTags[a]); } } } if(Q("A")){ var aTags=Q("A"); for(var a=0;a<aTags.length;a++){ if(aTags[a].innerHTML=="Advertise Here"){ var hideElement=aTags[a].parentNode.parentNode.parentNode; hideElement.parentNode.removeChild(hideElement); } } } if(Q("STRONG")){ var strongTags=Q("STRONG"); for(var a=0;a<strongTags.length;a++){ if(strongTags[a].innerHTML=="Twitter Brand Sponsors"){ var hideElement=strongTags[a].parentNode.parentNode.parentNode.parentNode.parentNode; hideElement.parentNode.removeChild(hideElement);}}}}
+		if(adsweep.url.match("my.opera.com/community/forums")){if(Q.CLASS('fpost')){var posts = Q.CLASS('fpost');for(var a=0;a<posts.length;a++){if(posts[a].innerHTML.match("882703")){$('content').removeChild(posts[a]);}}}}
+		if(adsweep.url.match("pcwelt.de")){if(Q("A")){ var anchorTags=Q("A"); for(var a=0;a<anchorTags.length;a++){ if(anchorTags[a].innerHTML.match("mentasys")){ var hideTag=anchorTags[a].parentNode.parentNode.parentNode.parentNode.parentNode; hideTag.parentNode.removeChild(hideTag); } } } if(Q("SPAN")){ var sTags=Q("SPAN"); for(var a=0;a<sTags.length;a++){ if(sTags[a].innerHTML.match("Office Anwendung-Software")){ var hideTag=sTags[a].parentNode; hideTag.parentNode.removeChild(hideTag); } } } if(Q("SPAN")){ var sTags=Q("SPAN"); for(var a=0;a<sTags.length;a++){ if(sTags[a].innerHTML.match("Ligatus")){ var hideTag=sTags[a].parentNode; hideTag.parentNode.removeChild(hideTag); } } } if(Q("H1")){ var h1Tags=Q("H1"); for(var a=0;a<h1Tags.length;a++){ if(h1Tags[a].innerHTML.match(/^Ligatus/)){ var hideTag=h1Tags[a].parentNode.parentNode.parentNode.parentNode; hideTag.parentNode.removeChild(hideTag); } } } }
+		if(adsweep.url.match("squidoo.com")){window.setTimeout(function(){if(Q("H2")){var hTags=Q("H2");for(var a=0;a<hTags.length;a++){if(hTags[a].innerHTML.match("Great Stuff on Amazon")){hTags[a].parentNode.parentNode.removeChild(hTags[a].parentNode);}}}},50);}
+		if(adsweep.url.match(/lifehacker\.com\/$/m)){if(Q("link")){var tag=Q("link")[1];var tagC = tag.cloneNode(true);tagC.href="http://tags.lifehacker.com/assets/minify.php?files=/assets/g4.lifehacker.com/css/style.css";tag.parentNode.replaceChild(tagC, tag);}}
+		if(adsweep.url.match("facepunch.com"))
 		{
 		  var  tag=Q("script[src='http://facepunchcom.skimlinks.com/api/skimlinks.js']");
 		  if ( tag ) {
@@ -254,12 +276,7 @@ function adsweep_YouTube(){
 	}
 }
 
-function adsweep_installCheck(){
-    if((URL.match(/^http:\/\/(www.)?adsweep.org\/$/))){
-           document.body.innerHTML += 
-           '<div style="position:absolute;top:0;right:0;background:#c00;color:#fff;display:inline;padding:2px 5px">Your AdSweep is currently active (v.'+version+')</div>';
-           }
-    }
+
 
 //-------------------------------------------------------------------------------------
 })();  // end of main AdSweep closure
