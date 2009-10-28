@@ -1,0 +1,17 @@
+{
+  "name": "AdSweep",
+  "version": "1.9.57",
+  "description": "An ad-removal tool for your favorite web browser.",
+  "icons": { "16": "icon16.png",
+           "32": "icon32.png",
+           "48": "icon48.png",
+          "128": "icon128.png" },
+  "update_url": "http://arienh4.net/adsweep.xml",
+  "content_scripts": [
+    {
+      "matches": ["http://*/*"],
+      "js": ["AdSweep.js"],
+      "run_at": "document_start"
+    }
+  ]
+}
