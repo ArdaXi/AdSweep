@@ -4,7 +4,7 @@
 // @author arienh4, based on the original AdSweep by Charles L.
 // @namespace http://www.adsweep.org
 // @license MIT
-// @version 2.0.1
+// @version 2.0.2
 // @run-at document-start
 // ==/UserScript==
 /*
@@ -190,7 +190,7 @@ function on_content_loaded(FP)
 var _DEBUG  = true ; // DBJ added
 
 var adsweep = {
-    version     :  "2.0.1" , // we have to increment versions "automagically", how do we use GIT for that?
+    version     :  "2.0.2" ,
     ua          :  navigator.userAgent ,
     url         :  location.href ,
     mainurl     :  "http://arienh4.net.nyud.net/" 

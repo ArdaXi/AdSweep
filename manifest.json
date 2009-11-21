@@ -1,6 +1,6 @@
 {
   "name": "AdSweep",
-  "version": "1.9.57",
+  "version": "2.0.2",
   "description": "An ad-removal tool for your favorite web browser.",
   "icons": { "16": "icon16.png",
            "32": "icon32.png",
