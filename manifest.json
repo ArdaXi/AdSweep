@@ -6,7 +6,6 @@
 		"32": "icon32.png",
 		"48": "icon48.png",
 		"128": "icon128.png" },
-	"update_url": "http://arienh4.net/adsweep.xml",
 	"background_page": "bg.html",
 	"options_page": "options.html",
 	"permissions": [
