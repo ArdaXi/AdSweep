@@ -1,5 +1,34 @@
 <html>
 <script type="text/javascript">
+chrome.extension.onConnect.addListener(function(port) {
+	port.onMessage.addListener(function(msg) {
+		if(msg.purpose == "cache") {
+			var xhr = new XMLHttpRequest();
+			xhr.onreadystatechange = function() {
+				if(xhr.readyState == 4) {
+					if(xhr.status == 200) {
+						var object = JSON.parse(xhr.responseText);
+						port.postMessage({"count" : object.count});
+						for( i in object.rules ) {
+							var site = object.rules[i].site;
+							var array = new Array(2);
+							array[0] = object.rules[i].css;
+							array[1] = object.rules[i].js;
+							setLocal(array, site);
+							port.postMessage({"progress" : i});
+						}
+						port.postMessage({"result" : "good"});
+					}
+					else {
+						port.postMessage({"result" : "bad"});
+					}
+				}
+			}
+			xhr.open("GET", "http://json.adsweep.org/adengine.php", true);
+			xhr.send(null);
+		}
+	});
+});
 var disDomain;
 chrome.extension.onRequest.addListener(listener);
 function listener(request, sender, sendResponse) { 
@@ -17,10 +46,10 @@ function listener(request, sender, sendResponse) {
 						setLocal(array, site);
 						console.log(site);
 					}
-					//sendResponse({"return" : 200});
+					sendResponse({"result" : "good"});
 				}
 				else {
-					//sendResponse({"return" : xhr.status});
+					sendResponse({"result" : "bad"});
 				}
 			}
 		}

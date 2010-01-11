@@ -19,12 +19,13 @@ a:link{text-decoration: none}
 a:visited{text-decoration: none}
 a:active{text-decoration: none}
 a:hover{text-decoration: underline}
-a{color: #0776A0}
+a{color: #0776A0;margin-top:10px}
 </style>
 <script type="text/javascript">
 var resultdiv;
 window.onload = function() {
 	document.getElementById('disable').onclick = disable;
+	document.getElementById('download').onclick = download;
 	resultdiv = document.getElementById('result');
 }
 function disable() {
@@ -35,11 +36,33 @@ function disable() {
 			resultdiv.innerHTML = "Something went wrong, please try again.";
 	});
 }
+function download() {
+	var port = chrome.extension.connect();
+	var count;
+	port.postMessage({"purpose" : "cache"});
+	port.onMessage.addListener(function(response) {
+		if(response.count) {
+			count = response.count;
+			resultdiv.innerHTML = "Downloading rules into cache.";
+			return;
+		}
+		if(response.progress) {
+			resultdiv.innerHTML = "Downloading rules, "+response.progress+"/"+count+".";
+			return;
+		}
+		if(response.result == "good") {
+			resultdiv.innerHTML = "Cache is updated.";
+			return;
+		}
+		resultdiv.innerHTML = "Something went wrong updating the cache.";
+	});
+}
 </script>
 </head>
 <body>
 <div id="main">
 <a id="disable" href="#">Disable current site</a><br/>
+<a id="download" href="#">Download all rules into the cache.</a><br/>
 <em>Please <a href="http://arienh4/donate">donate</a> if you can.</em><br/>
 <div id="result"></div>
 </body>
