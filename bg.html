@@ -1,5 +1,6 @@
 <html>
 <script type="text/javascript">
+var disDomain;
 chrome.extension.onRequest.addListener(listener);
 function listener(request, sender, sendResponse) { 
 	if(request.purpose == "cache") {
@@ -26,6 +27,20 @@ function listener(request, sender, sendResponse) {
 		xhr.open("GET", "http://json.adsweep.org/adengine.php", true);
 		xhr.send(null);
 	}
+	if(request.purpose == "disable") {
+		chrome.tabs.getSelected(null, function(tab) {
+			var disDomain = tab.url.replace(/\b(https?|ftp):\/\/(?:www\.)?([\-A-Z0-9.]+)(\/[\-A-Z0-9+&@#\/%=~_|!:,.;]*)?(\?[A-Z0-9+&@#\/%=~_|!:,.;]*)?/ig, "$2");
+			console.log("Disabling "+disDomain);
+			if(!localStorage["exceptions"])
+				localStorage["exceptions"] = disDomain;
+			else
+				localStorage["exceptions"] += ","+disDomain;
+			if(localStorage["exceptions"] && localStorage["exceptions"].indexOf(disDomain) != -1)
+				sendResponse({"result" : "good"});
+			else
+				sendResponse({"result" : "bad"});
+		});
+	}
 }
 function insertCode(tabId, css, js) {
 	if(css) chrome.tabs.insertCSS(tabId, {code:css});
@@ -49,9 +64,10 @@ function setLocal(array, key) {
 }
 
 chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab) {
-	if(changeInfo.status != "loading" && changeInfo.status != "complete") return;
+	if(changeInfo.status != "loading") return;
 	if(tab.url.substr(0,5) != "http:") return;
 	var domain = tab.url.replace(/\b(https?|ftp):\/\/(?:www\.)?([\-A-Z0-9.]+)(\/[\-A-Z0-9+&@#\/%=~_|!:,.;]*)?(\?[A-Z0-9+&@#\/%=~_|!:,.;]*)?/ig, "$2");
+	console.log("Removing for "+domain);
 	if(localStorage["exceptions"] && localStorage["exceptions"].indexOf(domain) != -1) return;
 	if(localStorage['common'])
 		var common = getLocal('common');
