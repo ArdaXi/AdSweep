@@ -1,0 +1,30 @@
+<html>
+<head>
+<style>
+a:link{text-decoration: none}
+a:visited{text-decoration: none}
+a:active{text-decoration: none}
+a{color: #0776A0}
+</style>
+<script type="text/javascript">
+window.onload = function() {
+	document.getElementById('disable').onclick = disable();
+}
+function disable() {
+	chrome.tabs.getSelected(null, function(Tab tab){
+		var domain = tab.url.replace(/\b(https?|ftp):\/\/(?:www\.)?([\-A-Z0-9.]+)(\/[\-A-Z0-9+&@#\/%=~_|!:,.;]*)?(\?[A-Z0-9+&@#\/%=~_|!:,.;]*)?/ig, "$2");
+		if(!localStorage["exceptions"])
+			localStorage["exceptions"] = domain;
+		else
+			localStorage["exceptions"] += ","+domain;
+	});
+}
+</script>
+</head>
+<body>
+<div id="main" width="100">
+<a id="disable" href="#">Disable current site</a>
+<em>Please <a href="http://arienh4/donate">donate</a> if you can.</em>
+</div>
+</body>
+</html>

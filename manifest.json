@@ -1,17 +1,16 @@
 {
-  "name": "AdSweep",
-  "version": "2.0.2",
-  "description": "An ad-removal tool for your favorite web browser.",
-  "icons": { "16": "icon16.png",
-           "32": "icon32.png",
-           "48": "icon48.png",
-          "128": "icon128.png" },
-  "update_url": "http://arienh4.net/adsweep.xml",
-  "content_scripts": [
-    {
-      "matches": ["http://*/*"],
-      "js": ["AdSweep.js"],
-      "run_at": "document_start"
-    }
-  ]
+	"name": "AdSweep",
+	"version": "2.0.4",
+	"description": "An online ad-removal tool for your favorite web browser. Released under MIT licence.",
+	"icons": { "16": "icon16.png",
+		"32": "icon32.png",
+		"48": "icon48.png",
+		"128": "icon128.png" },
+	"update_url": "http://arienh4.net/adsweep.xml",
+	"background_page": "bg.html",
+	"options_page": "options.html",
+	"permissions": [
+		"http://*/*",
+		"tabs"
+	]
 }

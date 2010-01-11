@@ -1,0 +1,70 @@
+<html>
+<head><title>AdSweep Options</title>
+<script type="text/javascript">
+window.onload = function() {
+	restore_options();
+	document.getElementById('download').onclick = download();
+	document.getElementById('save').onclick = save_options();
+}
+
+function status(text) {
+	var status = document.getElementById("status");
+	status.innerHTML = text;
+	setTimeout(function() { status.innerHTML = ""; }, 1000);
+}
+
+function download() {
+	status.innerHTML = "Downloading cache...";
+	chrome.extension.sendRequest({"purpose" : "cache"});
+}
+
+// Saves options to localStorage.
+function save_options() {
+	var input = document.getElementById("addsite");
+	var site = input.value;
+	if(!localStorage["exceptions"]) {
+		localStorage["exceptions"] = site;
+	} else {
+		localStorage["exceptions"] += ","+site;
+	}
+	// Update status to let user know options were saved.
+	status("Options Saved.");
+	
+	var y = document.createElement('option');
+	y.text=site;
+	document.getElementById("remsite").add(y, null);
+	remove.style.visibility="visible";
+}
+
+// Restores select box state to saved value from localStorage.
+function restore_options() {
+	var sites = localStorage["exceptions"];
+	var remove = document.getElementById("remove");
+	if (!sites) {
+		remove.style.visibility="hidden";
+		return;
+	}
+	remove.style.visibility="visible";
+	var array = sites.split(",");
+	var select = document.getElementById("remsite");
+	for ( x in array ) {
+		var y = document.createElement('option');
+	y.text=array[x];
+		select.add(y, null);
+	}
+}
+
+</script>
+
+</head>
+<body>
+
+Add domain: <input type="text" id="addsite"> <button id="save">Save</button><br>
+<div id="remove">Remove domain: <select id="remsite"></select><br></div><br>
+
+<button id="download">Download all rules</button><br>
+
+<div id="status"></div>
+<em>AdSweep is maintained in my free time, on my own costs. Please give back whatever you can by <a href="http://arienh4/donate">donating</a>.</em>
+</body>
+</html>
