@@ -2,6 +2,7 @@ var resultdiv;
 window.onload = function() {
 	document.getElementById('disable').onclick = disable;
 	document.getElementById('download').onclick = download;
+	document.getElementById('donate').onclick = donate;
 	resultdiv = document.getElementById('result');
 };
 function disable() {
@@ -33,4 +34,7 @@ function download() {
 		}
 		resultdiv.innerHTML = "Something went wrong updating the cache.";
 	});
+}
+function donate() {
+	chrome.tabs.create({"url": "http://arienh4.net/donate"});
 }

@@ -73,6 +73,10 @@ function setLocal(array, key) {
 function exDomain(url) {
 	var regex = /\b(https?|ftp):\/\/(?:www\.)?([\-A-Z0-9.]+)(\/[\-A-Z0-9+&@#\/%=~_|!:,.;]*)?(\?[A-Z0-9+&@#\/%=~_|!:,.;]*)?/ig;
 	var match = regex.exec(url);
+	if(match)
+		return match[2];
+	while(!match)
+		match = regex.exec(url);
 	return match[2];
 }
 
