@@ -8,19 +8,19 @@ chrome.extension.onConnect.addListener(function(port) {
 				if(xhr.readyState == 4) {
 					if(xhr.status == 200) {
 						var object = JSON.parse(xhr.responseText);
-						port.postMessage({"count" : object.count});
+						port.postMessage({"content" : "count", "count" : object.count});
 						for( i in object.rules ) {
 							var site = object.rules[i].site;
 							var array = new Array(2);
 							array[0] = object.rules[i].css;
 							array[1] = object.rules[i].js;
 							setLocal(array, site);
-							port.postMessage({"progress" : i});
+							port.postMessage({"content": "progress", "progress" : i});
 						}
-						port.postMessage({"result" : "good"});
+						port.postMessage({"content": "result", "result" : "good"});
 					}
 					else {
-						port.postMessage({"result" : "bad"});
+						port.postMessage({"content": "result", "result" : "bad"});
 					}
 				}
 			}

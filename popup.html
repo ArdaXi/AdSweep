@@ -40,13 +40,14 @@ function download() {
 	var port = chrome.extension.connect();
 	var count;
 	port.postMessage({"purpose" : "cache"});
+	resultdiv.innerHTML = "Updating cache, please wait.";
 	port.onMessage.addListener(function(response) {
-		if(response.count) {
+		if(response.content == "count") {
 			count = response.count;
 			resultdiv.innerHTML = "Downloading rules into cache.";
 			return;
 		}
-		if(response.progress) {
+		if(response.content == "progress") {
 			resultdiv.innerHTML = "Downloading rules, "+response.progress+"/"+count+".";
 			return;
 		}
