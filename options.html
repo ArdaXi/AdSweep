@@ -3,8 +3,9 @@
 <script type="text/javascript">
 window.onload = function() {
 	restore_options();
-	document.getElementById('download').onclick = download();
-	document.getElementById('save').onclick = save_options();
+	document.getElementById('download').onclick = download;
+	document.getElementById('disable').onclick = disable;
+	document.getElementById('enable').onclick = enable;
 }
 
 function status(text) {
@@ -18,8 +19,7 @@ function download() {
 	chrome.extension.sendRequest({"purpose" : "cache"});
 }
 
-// Saves options to localStorage.
-function save_options() {
+function disable() {
 	var input = document.getElementById("addsite");
 	var site = input.value;
 	if(!localStorage["exceptions"]) {
@@ -28,12 +28,30 @@ function save_options() {
 		localStorage["exceptions"] += ","+site;
 	}
 	// Update status to let user know options were saved.
-	status("Options Saved.");
+	status("Site disabled.");
 	
 	var y = document.createElement('option');
 	y.text=site;
 	document.getElementById("remsite").add(y, null);
 	remove.style.visibility="visible";
+}
+
+function removeItem(array, item) {
+	var i = 0;
+	while (i < array.length) {
+		if (array[i] == item) {
+				array.splice(i, 1);
+			} else {
+				i++;
+			}
+		}
+	return array;
+}
+
+function enable() {
+	var site = document.getElementById("remsite").value;
+	var array = localStorage["exceptions"].split(",");
+	localStorage["exceptions"] = removeItem(array, site).join();
 }
 
 // Restores select box state to saved value from localStorage.
@@ -59,11 +77,9 @@ function restore_options() {
 </head>
 <body>
 
-Add domain: <input type="text" id="addsite"> <button id="save">Save</button><br>
-<div id="remove">Remove domain: <select id="remsite"></select><br></div><br>
-
+Disable domain: <input type="text" id="addsite"> <button id="disable">Disable</button><br>
+<div id="remove">Enable domain: <select id="remsite"></select><button id="enable">Enable</button><br></div>
 <button id="download">Download all rules</button><br>
-
 <div id="status"></div>
 <em>AdSweep is maintained in my free time, on my own costs. Please give back whatever you can by <a href="http://arienh4/donate">donating</a>.</em>
 </body>
