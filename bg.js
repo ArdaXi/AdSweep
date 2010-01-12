@@ -37,8 +37,7 @@ chrome.extension.onRequest.addListener(listener);
 function listener(request, sender, sendResponse) { 
 	if(request.purpose == "disable") {
 		chrome.tabs.getSelected(null, function(tab) {
-			var disDomain = exDomain(tab.url);
-			console.log("Disabling "+disDomain);
+			var disDomain = tab2domain(tab);
 			if(!localStorage["exceptions"])
 				localStorage["exceptions"] = disDomain;
 			else
@@ -70,21 +69,18 @@ function setLocal(array, key) {
 	var string = array.join("@");
 	localStorage[key] = string;
 }
-function exDomain(url) {
+function tab2domain(tab) {
+	if(!tab.url)
+		return "undefined";
 	var regex = /\b(https?|ftp):\/\/(?:www\.)?([\-A-Z0-9.]+)(\/[\-A-Z0-9+&@#\/%=~_|!:,.;]*)?(\?[A-Z0-9+&@#\/%=~_|!:,.;]*)?/ig;
-	var match = regex.exec(url);
-	if(match)
-		return match[2];
-	while(!match)
-		match = regex.exec(url);
+	var match = regex.exec(tab.url);
 	return match[2];
 }
 
 chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab) {
 	if(changeInfo.status != "loading") return;
 	if(tab.url.substr(0,5) != "http:") return;
-	var domain = exDomain(tab.url);
-	console.log("Removing for "+domain);
+	var domain = tab2domain(tab);
 	if(localStorage["exceptions"] && localStorage["exceptions"].indexOf(domain) != -1) return;
 	if(localStorage['common'])
 		var common = getLocal('common');
