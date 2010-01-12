@@ -1,5 +1,9 @@
 chrome.extension.onConnect.addListener(function(port) {
+// This anonymous function is called when a port is opened.
+// A port is used for messaging.
 	port.onMessage.addListener(function(msg) {
+	// This function is called when a message is received.
+		// The message is a JSON object, the nature is stored in purpose.
 		if(msg.purpose == "cache") {
 			var xhr = new XMLHttpRequest();
 			xhr.onreadystatechange = function() {
@@ -22,6 +26,7 @@ chrome.extension.onConnect.addListener(function(port) {
 					}
 				}
 			};
+			// Retrieve all the rules.
 			xhr.open("GET", "http://json.adsweep.org/adengine.php", true);
 			xhr.send(null);
 		}
@@ -30,30 +35,6 @@ chrome.extension.onConnect.addListener(function(port) {
 var disDomain;
 chrome.extension.onRequest.addListener(listener);
 function listener(request, sender, sendResponse) { 
-	if(request.purpose == "cache") {
-		var xhr = new XMLHttpRequest();
-		xhr.onreadystatechange = function() {
-			if(xhr.readyState == 4) {
-				if(xhr.status == 200) {
-					var object = JSON.parse(xhr.responseText);
-					for( i in object.rules ) {
-						var site = object.rules[i].site;
-						var array = new Array(2);
-						array[0] = object.rules[i].css;
-						array[1] = object.rules[i].js;
-						setLocal(array, site);
-						console.log(site);
-					}
-					sendResponse({"result" : "good"});
-				}
-				else {
-					sendResponse({"result" : "bad"});
-				}
-			}
-		};
-		xhr.open("GET", "http://json.adsweep.org/adengine.php", true);
-		xhr.send(null);
-	}
 	if(request.purpose == "disable") {
 		chrome.tabs.getSelected(null, function(tab) {
 			var disDomain = exDomain(tab.url);
@@ -94,6 +75,7 @@ function exDomain(url) {
 	var match = regex.exec(url);
 	return match[2];
 }
+
 chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab) {
 	if(changeInfo.status != "loading") return;
 	if(tab.url.substr(0,5) != "http:") return;
