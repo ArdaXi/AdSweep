@@ -1,7 +1,7 @@
 {
 	"name": "AdSweep",
 	"version": "2.0.7",
-	"description": "An online ad-removal tool for your favorite web browser. Released under MIT licence.",
+	"description": "An online ad-removal tool for your favorite web browser.",
 	"icons": { "16": "icon16.png",
 		"32": "icon32.png",
 		"48": "icon48.png",
@@ -12,7 +12,6 @@
 		"popup": "popup.html"
 	},
 	"background_page": "bg.html",
-	"options_page": "options.html",
 	"permissions": [
 		"http://*/*",
 		"tabs"

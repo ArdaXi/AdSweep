@@ -4,37 +4,11 @@ chrome.extension.onConnect.addListener(function(port) {
 	port.onMessage.addListener(function(msg) {
 	// This function is called when a message is received.
 		// The message is a JSON object, the nature is stored in purpose.
-		if(msg.purpose == "cache") {
-			var xhr = new XMLHttpRequest();
-			xhr.onreadystatechange = function() {
-				if(xhr.readyState == 4) {
-					if(xhr.status == 200) {
-						var object = JSON.parse(xhr.responseText);
-						port.postMessage({"content" : "count", "count" : object.count});
-						for( i in object.rules ) {
-							var site = object.rules[i].site;
-							var array = new Array(2);
-							array[0] = object.rules[i].css;
-							array[1] = object.rules[i].js;
-							setLocal(array, site);
-							port.postMessage({"content": "progress", "progress" : i});
-						}
-						port.postMessage({"content": "result", "result" : "good"});
-					}
-					else {
-						port.postMessage({"content": "result", "result" : "bad"});
-					}
-				}
-			};
-			// Retrieve all the rules.
-			xhr.open("GET", "http://json.adsweep.org/adengine.php", true);
-			xhr.send(null);
-		}
+		
 	});
 });
 var disDomain;
-chrome.extension.onRequest.addListener(listener);
-function listener(request, sender, sendResponse) { 
+chrome.extension.onRequest.addListener(function(request, sender, sendResponse) { 
 	if(request.purpose == "disable") {
 		chrome.tabs.getSelected(null, function(tab) {
 			var disDomain = tab2domain(tab);
@@ -43,24 +17,55 @@ function listener(request, sender, sendResponse) {
 			else
 				localStorage["exceptions"] += ","+disDomain;
 			if(localStorage["exceptions"] && localStorage["exceptions"].indexOf(disDomain) != -1)
-				sendResponse({"result" : "good"});
+				chrome.extension.sendRequest({"purpose":"popup","message":"Disabled. You need to refresh before it'll take effect."});
 			else
-				sendResponse({"result" : "bad"});
+				chrome.extension.sendRequest({"purpose":"popup","message":"Something went wrong, please try again."});
 		});
 	}
-}
+	else if(request.purpose == "cache") {
+		chrome.extension.sendRequest({"purpose":"popup","message":"Downloading cache, please wait."});
+		var xhr = new XMLHttpRequest();
+		xhr.onreadystatechange = function() {
+			if(xhr.readyState == 4) {
+				if(xhr.status == 200) {
+					var object = JSON.parse(xhr.responseText);
+					for( i in object.rules ) {
+						var site = object.rules[i].site;
+						var array = new Array(2);
+						array[0] = object.rules[i].css;
+						array[1] = object.rules[i].js;
+						setLocal(array, site);
+					}
+					chrome.extension.sendRequest({"purpose":"popup","message":"Cache is updated."});
+				}
+				else {
+					chrome.extension.sendRequest({"purpose":"popup","message":"Something went wrong updating the cache."});
+				}
+			}
+		};
+		// Retrieve all the rules.
+		xhr.open("GET", "http://json.adsweep.org/adengine.php", true);
+		xhr.send(null);
+	}
+	sendResponse({});
+});
 function insertCode(tabId, css, js) {
 	if(css) chrome.tabs.insertCSS(tabId, {code:css});
 	if(js) chrome.tabs.executeScript(tabId, {code:js});
 }
 function getLocal(key) {
-	var array = localStorage[key].split("\\a");
+//Getter function for arrays in localStorage.
+	var array = localStorage[key].split("@");
+	//Take the string and split it into an array.
 	for(x in array)
-		if(array[x].indexOf("\\c") != -1)
+		if(array[x].indexOf("`") != -1)
+		//If the item contains an `, it's an array
 			array[x] = array[x].split("`");
+			//Split it then
 	return array;
 }
 function setLocal(array, key) {
+//Setter function for arrays in localStorage
 	for (var i=0, l=array.length; i<l; i++){
 		if (array[i] instanceof Array){
 			array[i] = array[i].join("`");
@@ -70,10 +75,11 @@ function setLocal(array, key) {
 	localStorage[key] = string;
 }
 function tab2domain(tab) {
-	if(!tab.url)
+	if(tab.url == null)
 		return "undefined";
 	var regex = /\b(https?|ftp):\/\/(?:www\.)?([\-A-Z0-9.]+)(\/[\-A-Z0-9+&@#\/%=~_|!:,.;]*)?(\?[A-Z0-9+&@#\/%=~_|!:,.;]*)?/ig;
 	var match = regex.exec(tab.url);
+	if(match == null) return "undefined";
 	return match[2];
 }
 
