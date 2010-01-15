@@ -1,6 +1,6 @@
 var resultdiv;
 window.onload = function() {
-	document.getElementById('disable').onclick = disable;
+	document.getElementById('xable').onclick = disable;
 	document.getElementById('download').onclick = download;
 	document.getElementById('donate').onclick = donate;
 	document.popup = true;
@@ -12,6 +12,9 @@ chrome.extension.onRequest.addListener(function(request, sender, sendResponse) {
 });
 function disable() {
 	chrome.extension.sendRequest({"purpose" : "disable"});
+}
+function enable() {
+	chrome.extension.sendRequest({"purpose" : "enable"});
 }
 function download() {
 	chrome.extension.sendRequest({"purpose" : "cache"});

@@ -1,12 +1,3 @@
-chrome.extension.onConnect.addListener(function(port) {
-// This anonymous function is called when a port is opened.
-// A port is used for messaging.
-	port.onMessage.addListener(function(msg) {
-	// This function is called when a message is received.
-		// The message is a JSON object, the nature is stored in purpose.
-		
-	});
-});
 var disDomain;
 chrome.extension.onRequest.addListener(function(request, sender, sendResponse) { 
 	if(request.purpose == "disable") {
@@ -18,6 +9,17 @@ chrome.extension.onRequest.addListener(function(request, sender, sendResponse) {
 				localStorage["exceptions"] += ","+disDomain;
 			if(localStorage["exceptions"] && localStorage["exceptions"].indexOf(disDomain) != -1)
 				chrome.extension.sendRequest({"purpose":"popup","message":"Disabled. You need to refresh before it'll take effect."});
+			else
+				chrome.extension.sendRequest({"purpose":"popup","message":"Something went wrong, please try again."});
+		});
+	}
+	else if(request.purpose == "enable") {
+		chrome.tabs.getSelected(null, function(tab) {
+			var site = tab2domain(tab);
+			var array = localStorage["exceptions"].split(",");
+			localStorage["exceptions"] = removeItem(array, site).join();
+			if(localStorage["exceptions"] && localStorage["exceptions"].indexOf(disDomain) == -1)
+				chrome.extension.sendRequest({"purpose":"popup","message":"Re-enabled. You need to refresh before it'll take effect."});
 			else
 				chrome.extension.sendRequest({"purpose":"popup","message":"Something went wrong, please try again."});
 		});
@@ -82,12 +84,22 @@ function tab2domain(tab) {
 	if(match == null) return "undefined";
 	return match[2];
 }
-
+function removeItem(array, item) {
+	var i = 0;
+	while (i < array.length) {
+		if (array[i] == item) {
+				array.splice(i, 1);
+			} else {
+				i++;
+			}
+		}
+	return array;
+}
 chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab) {
 	if(changeInfo.status != "loading") return;
 	if(tab.url.substr(0,5) != "http:") return;
 	var domain = tab2domain(tab);
-	if(localStorage["exceptions"] && localStorage["exceptions"].indexOf(domain) != -1) return;
+	if(checkSite(domain)) return;
 	if(localStorage['common'])
 		var common = getLocal('common');
 	if(localStorage[domain]) {
