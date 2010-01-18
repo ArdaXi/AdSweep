@@ -1,5 +1,9 @@
+$(document).ready(function(){
+	chrome.extension.onRequest.addListener(requestListener);
+	chrome.tabs.onUpdated.addListener(onUpdated);
+});
 var disDomain;
-chrome.extension.onRequest.addListener(function(request, sender, sendResponse) { 
+var requestListener = function(request, sender, sendResponse) { 
 	if(request.purpose == "disable") {
 		chrome.tabs.getSelected(null, function(tab) {
 			var disDomain = tab2domain(tab);
@@ -26,31 +30,18 @@ chrome.extension.onRequest.addListener(function(request, sender, sendResponse) {
 	}
 	else if(request.purpose == "cache") {
 		chrome.extension.sendRequest({"purpose":"popup","message":"Downloading cache, please wait."});
-		var xhr = new XMLHttpRequest();
-		xhr.onreadystatechange = function() {
-			if(xhr.readyState == 4) {
-				if(xhr.status == 200) {
-					var object = JSON.parse(xhr.responseText);
-					for( i in object.rules ) {
-						var site = object.rules[i].site;
-						var array = new Array(2);
-						array[0] = object.rules[i].css;
-						array[1] = object.rules[i].js;
-						setLocal(array, site);
-					}
-					chrome.extension.sendRequest({"purpose":"popup","message":"Cache is updated."});
-				}
-				else {
-					chrome.extension.sendRequest({"purpose":"popup","message":"Something went wrong updating the cache."});
-				}
-			}
-		};
-		// Retrieve all the rules.
-		xhr.open("GET", "http://json.adsweep.org/adengine.php", true);
-		xhr.send(null);
+		$.getJSON("http://json.adsweep.org/adengine.php?callback=?", function(data){
+			$.each(data.rules, function(i, item){
+				var array = new Array(2);
+				array[0] = item.css;
+				array[1] = base64.decode(item.js);
+				setLocal(array, item.site);
+			});
+			chrome.extension.sendRequest({"purpose":"popup","message":"Cache is updated. "+data.count+" items downloaded."});
+		});
 	}
 	sendResponse({});
-});
+};
 function insertCode(tabId, css, js) {
 	if(css) chrome.tabs.insertCSS(tabId, {code:css});
 	if(js) chrome.tabs.executeScript(tabId, {code:js});
@@ -95,34 +86,32 @@ function removeItem(array, item) {
 		}
 	return array;
 }
-chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab) {
+var onUpdated = function(tabId, changeInfo, tab) {
 	if(changeInfo.status != "loading") return;
-	if(tab.url.substr(0,5) != "http:") return;
+	if(tab.url.substr(0,4) != "http") return;
 	var domain = tab2domain(tab);
-	if(checkSite(domain)) return;
+	if(localStorage["exceptions"] && localStorage["exceptions"].indexOf(domain) != -1) return;
+	var common;
 	if(localStorage['common'])
-		var common = getLocal('common');
+		 common = getLocal('common');
+	var domrules;
 	if(localStorage[domain]) {
-		var domrules = getLocal(domain);
+		domrules = getLocal(domain);
 		insertCode(tabId, domrules[0], domrules[1]);
 	}
 	if(common)
 		insertCode(tabId, common[0], common[1]);
-	
-	var xhr = new XMLHttpRequest();
-	xhr.onreadystatechange = function() {
-		if(xhr.readyState == 4 && xhr.status == 200)
-		{
-			var response = JSON.parse(xhr.responseText);
-			var array = new Array(2);
-			var common = new Array(2);
-			setLocal(new Array(response.common, response.commonjs), 'common');
-			insertCode(tabId, response.common, response.commonjs);
-			if(!response.site || response.site == "") return;
-			insertCode(tabId, response.css, response.js);
-			setLocal(new Array(response.css, response.js), response.site);
+	$.getJSON("http://json.adsweep.org/adengine.php?domain="+domain+"&callback=?", function(data){
+		data.commonjs = base64.decode(data.commonjs);
+		data.js = base64.decode(data.js);
+		setLocal(new Array(data.common, data.commonjs), 'common');
+		if(common != getLocal('common'))
+			insertCode(tabId, data.common, data.commonjs);
+		if(!data.site || data.site == "") return;
+		var array = new Array(data.css, data.js);
+		if(array != domrules) {
+			insertCode(tabId, data.css, data.js);
+			setLocal(array, response.site);
 		}
-	};
-	xhr.open("GET", "http://json.adsweep.org/adengine.php?domain="+domain, true);
-	xhr.send(null);
-});
+	});
+};
