@@ -4,10 +4,10 @@ $(document).ready(function(){
 	if(localStorage["installed"] != "true") {
 		$.getJSON("http://json.adsweep.org/adengine.php?callback=?", function(data){
 			$.each(data.rules, function(i, item){
-				var array = new Array(2);
-				array[0] = item.css;
-				array[1] = Base64.decode(item.js);
-				setLocal(array, item.site);
+				var object = {};
+				object.css = item.css;
+				object.js = Base64.decode(item.js);
+				localStorage[item.site] = JSON.stringify(object);
 			});
 		});
 		localStorage["installed"] = "true";
@@ -61,12 +61,10 @@ var requestListener = function(request, sender, sendResponse) {
 		chrome.extension.sendRequest({"purpose":"popup","message":"Downloading cache, please wait."});
 		$.getJSON("http://json.adsweep.org/adengine.php?callback=?", function(data){
 			$.each(data.rules, function(i, item){
-				var array = new Array(2);
-				array[0] = item.css;
-				array[1] = Base64.decode(item.js);
-				setLocal(array, item.site);
-				var x = Math.round((i / data.count)*100);
-				chrome.extension.sendRequest({"purpose":"popup","message":"Downloading cache, "+x+"%"});
+				var object = {};
+				object.css = item.css;
+				object.js = Base64.decode(item.js);
+				localStorage[item.site] = JSON.stringify(object);
 			});
 			chrome.extension.sendRequest({"purpose":"popup","message":"Cache is updated. "+data.count+" items downloaded."});
 		});
@@ -88,33 +86,34 @@ var onUpdated = function(tabId, changeInfo, tab) {
 	}
 	var common;
 	if(localStorage['common'])
-		 common = getLocal('common');
+		 common = JSON.parse(localStorage['common']);
 	var domrules;
 	if(localStorage[domain]) {
-		domrules = getLocal(domain);
-		insertCode(tabId, domrules[0], domrules[1]);
+		domrules = JSON.parse(localStorage[domain]);
+		insertCode(tabId, domrules.css, domrules.js);
 	}
 	if(common)
-		insertCode(tabId, common[0], common[1]);
+		insertCode(tabId, common.css, common.js);
 	if(localStorage["privacy"] == "on") return;
 	$.getJSON("http://json.adsweep.org/adengine.php?domain="+domain+"&callback=?", function(data){
 		data.commonjs = Base64.decode(data.commonjs);
 		data.js = Base64.decode(data.js);
 		var css, js;
-		if(common[0] != data.common)
+		if(common.css != data.common)
 			css = data.common;
-		if(common[1] != data.commonjs)
+		if(common.js != data.commonjs)
 			js = data.commonjs;
 		insertCode(tabId, css, js);
 		if(!data.site || data.site == "") return;
-		var array = new Array(data.css, data.js);
-		if(domrules[0] != data.css)
+		if(domrules.css != data.css)
 			css = data.css;
-		if(domrules[1] != data.js)
+		if(domrules.js != data.js)
 			js = data.js;
 		insertCode(tabId, css, js);
-		setLocal(new Array(data.common, data.commonjs), 'common');
-		setLocal(array, data.site);
+		var common = {"css":data.common,"js":data.commonjs};
+		localStorage["common"] = JSON.stringify(common);
+		var site = {"css":data.css,"js":data.js};
+		localStorage[data.site] = JSON.stringify(site);
 	});
 };
 var onSelected = function(tabId, changeInfo, tab) {
