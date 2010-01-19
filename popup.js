@@ -1,8 +1,8 @@
 $(document).ready(function(){
 	$("#disable").text(chrome.i18n.getMessage("disableSite")).click(disable);
 	$("#enable").text(chrome.i18n.getMessage("enableSite")).click(enable);
-	$("#disableprivacy").text(chrome.i18n.getMessage("disablePrivacy")).click(disableprivacy);
-	$("#enableprivacy").text(chrome.i18n.getMessage("enablePrivacy")).click(enableprivacy);
+	$("#disable2").text(chrome.i18n.getMessage("disable2")).click(disable2);
+	$("#enable2").text(chrome.i18n.getMessage("enable2")).click(enable2);
 	$("#download").text(chrome.i18n.getMessage("updateCache")).click(download);
 	$("#donate").text(chrome.i18n.getMessage("donateReq")).click(donate);
 	document.popup = true;
@@ -21,13 +21,13 @@ chrome.extension.onRequest.addListener(function(request, sender, sendResponse) {
 			$("#disable").hide();
 			$("#enable").show();
 		}
-		if(request.privacy == "on") {
-			$("#enableprivacy").hide();
-			$("#disableprivacy").show();
+		if(request.live == "on") {
+			$("#enable2").hide();
+			$("#disable2").show();
 		}
-		else if(request.privacy == "off") {
-			$("#disableprivacy").hide();
-			$("#enableprivacy").show();
+		else if(request.live == "off") {
+			$("#disable2").hide();
+			$("#enable2").show();
 		}
 	}
 });
@@ -37,11 +37,11 @@ function disable() {
 function enable() {
 	chrome.extension.sendRequest({"purpose" : "enable"});
 }
-function disableprivacy() {
-	chrome.extension.sendRequest({"purpose" : "privacy","mode" : "off"});
+function disable2() {
+	chrome.extension.sendRequest({"purpose" : "live","mode" : "off"});
 }
-function enableprivacy() {
-	chrome.extension.sendRequest({"purpose" : "privacy","mode" : "on"});
+function enable2() {
+	chrome.extension.sendRequest({"purpose" : "live","mode" : "on"});
 }
 function download() {
 	chrome.extension.sendRequest({"purpose" : "cache"});

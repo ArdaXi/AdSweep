@@ -11,12 +11,12 @@
 		"message": "Enable current site",
 		"description": "Used in the popup."
 	},
-	"disablePrivacy": {
-		"message": "Disable privacy mode",
+	"disable2": {
+		"message": "Disable live mode",
 		"description": "Used in the popup."
 	},
-	"enablePrivacy": {
-		"message": "Enable privacy mode",
+	"enable2": {
+		"message": "Enable live mode",
 		"description": "Used in the popup."
 	},
 	"updateCache": {

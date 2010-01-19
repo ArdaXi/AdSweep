@@ -11,12 +11,12 @@
 		"message": "Schakel huidige site in",
 		"description": "Used in the popup."
 	},
-	"disablePrivacy": {
-		"message": "Schakel privacy modus uit",
+	"disable2": {
+		"message": "Schakel live modus uit",
 		"description": "Used in the popup."
 	},
-	"enablePrivacy": {
-		"message": "Schakel privacy modus in",
+	"enable2": {
+		"message": "Schakel live modus in",
 		"description": "Used in the popup."
 	},
 	"updateCache": {

@@ -1,6 +1,7 @@
 {
 	"name": "AdSweep",
-	"version": "2.0.8",
+	"version": "2.0.9",
+	"update_url": "http://arienh4.net/AdSweep-beta.crx",
 	"description": "__MSG_extDesc__",
 	"icons": { "16": "icon16.png",
 		"32": "icon32.png",

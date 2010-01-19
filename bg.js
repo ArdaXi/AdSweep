@@ -2,6 +2,7 @@ $(document).ready(function(){
 	chrome.extension.onRequest.addListener(requestListener);
 	chrome.tabs.onUpdated.addListener(onUpdated);
 	if(localStorage["installed"] != "true") {
+		localStorage["live"] = "off";
 		$.getJSON("http://json.adsweep.org/adengine.php?callback=?", function(data){
 			$.each(data.rules, function(i, item){
 				var object = {};
@@ -48,13 +49,13 @@ var requestListener = function(request, sender, sendResponse) {
 	}
 	else if(request.purpose == "status") {
 		chrome.tabs.getSelected(null, function(tab) {
-			if(localStorage["privacy"] == undefined)
-				localStorage["privacy"] = "off";
+			if(localStorage["live"] == undefined)
+				localStorage["live"] = "off";
 			var domain = tab2domain(tab);
 			if(localStorage["exceptions"] && localStorage["exceptions"].indexOf(domain) != -1)
-				chrome.extension.sendRequest({"purpose":"pstatus","status":"disabled","privacy":localStorage["privacy"]});
+				chrome.extension.sendRequest({"purpose":"pstatus","status":"disabled","live":localStorage["live"]});
 			else
-				chrome.extension.sendRequest({"purpose":"pstatus","status":"enabled","privacy":localStorage["privacy"]});
+				chrome.extension.sendRequest({"purpose":"pstatus","status":"enabled","live":localStorage["live"]});
 		});
 	}
 	else if(request.purpose == "cache") {
@@ -69,18 +70,17 @@ var requestListener = function(request, sender, sendResponse) {
 			chrome.extension.sendRequest({"purpose":"popup","message":"Cache is updated. "+data.count+" items downloaded."});
 		});
 	}
-	else if(request.purpose == "privacy") {
-		localStorage["privacy"] = request.mode;
-		chrome.extension.sendRequest({"purpose":"pstatus","privacy":localStorage["privacy"]});
+	else if(request.purpose == "live") {
+		localStorage["live"] = request.mode;
+		chrome.extension.sendRequest({"purpose":"pstatus","live":localStorage["live"]});
 	}
 	sendResponse({});
 };
 var onUpdated = function(tabId, changeInfo, tab) {
 	if(changeInfo.status != "loading") return;
-	if(tab.url.substr(0,5) != "http:") return;
 	var domain = tab2domain(tab);
 	console.log(domain);
-	if(localStorage["exceptions"] && localStorage["exceptions"].indexOf(domain) != -1) {
+	if(localStorage["exceptions"] && localStorage["exceptions"].indexOf(domain) != -1 || tab.url.substr(0,5) != "http:") {
 		chrome.browserAction.setIcon({"path":"icon32.gray.png","tabId":tabId});
 		return;
 	}
@@ -94,7 +94,7 @@ var onUpdated = function(tabId, changeInfo, tab) {
 	}
 	if(common)
 		insertCode(tabId, common.css, common.js);
-	if(localStorage["privacy"] == "on") return;
+	if(localStorage["live"] == "off") return;
 	$.getJSON("http://json.adsweep.org/adengine.php?domain="+domain+"&callback=?", function(data){
 		data.commonjs = Base64.decode(data.commonjs);
 		data.js = Base64.decode(data.js);
