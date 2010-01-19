@@ -1,6 +1,12 @@
+/**
+ * Inserts code into given tab.
+ * @param tabId The id corresponding to the tab to insert into.
+ * @param css A string containing CSS code to inject.
+ * @param js A string containing Javascript code to inject.
+ */
 function insertCode(tabId, css, js) {
-	if(css) chrome.tabs.insertCSS(tabId, {code:css});
-	if(js) chrome.tabs.executeScript(tabId, {code:js});
+	if(typeof css == "string") chrome.tabs.insertCSS(tabId, {code:css});
+	if(typeof js == "string") chrome.tabs.executeScript(tabId, {code:js});
 }
 function getLocal(key) {
 //Getter function for arrays in localStorage.
@@ -23,99 +29,20 @@ function setLocal(array, key) {
 	var string = array.join("@");
 	localStorage[key] = string;
 }
-function cleanURL(str, bDeleteDomain) 
-{ 
-   if (str == null || str.length == 0) 
-   //   return ""; 
-       
-   var i = str.indexOf("http://"); 
-    
-   if (i == 0) 
-   { 
-      str = str.substr(7); 
-   } 
-   else 
-   { 
-      i = str.indexOf("https://"); 
-       
-      if (i == 0) 
-      { 
-         str = str.substr(8); 
-      } 
-   } 
-             
-   i = str.indexOf("?"); 
-   if ( i > -1 ) 
-      str = str.substring(0,i); 
-       
-   i = str.indexOf("&"); 
-   if ( i > -1 ) 
-      str = str.substring(0,i); 
-
-   for (;;) 
-   { 
-      i = str.lastIndexOf("/"); 
-       
-      if ( i == -1 || i < (str.length -1) ) 
-         break; 
-          
-      str = str.substring(0,i);          
-   } 
-    
-   while (str.indexOf("/") == 0) 
-      str = str.substring(1); 
-                               
-   if (bDeleteDomain) 
-   { 
-      i = str.indexOf("/"); 
-      if ( i > -1 ) 
-      { 
-         str = str.substring(i+1);    
-      } 
-   } 
-       
-   for (;;) 
-   {    
-      i = str.indexOf("//"); 
-      if (i == -1) 
-         break; 
-      str = str.replace(/\/\//g, "/"); 
-   } 
-    
-   return str; 
-} 
+/**
+ * Retrieves just the hostname of a given tab.
+ * @param tab The tab from which to extract the hostname.
+ * @return A string containing the hostname for the given tab.
+ */
 function tab2domain(tab) {
-	str = tab.url;
-	if (str == null || str.length == 0) 
-		return "";
-	
-	str = cleanURL(str).toLowerCase(); 
-	 
-	var i = str.indexOf("/"); 
-	if (i > -1) 
-		str = str.substring(0, i); 
-		 
-	var parts = str.split('.'); 
-	 
-	var len = parts.length; 
-	 
-	if (len < 3) 
-		return str; 
-
-	var lastPart = parts[len-1]; 
-	var secondPart; 
-			 
-	secondPart = parts[len-2]; 
-	 
-	var two = 2; 
-	 
-	if (lastPart == "uk" && secondPart == "co") 
-		++two; 
-	 
-	if (len >= 0) 
-		return parts.splice(len-two, two).join('.'); 
-	 
-	return false; 
+	var myregexp = /[a-z][a-z0-9+\-.]*:\/\/(www\.)?([a-z0-9\-_.~%]*)/i;
+	var match = myregexp.exec(tab.url);
+	if (match != null) {
+		result = match[2];
+	} else {
+		result = false;
+	}
+	return result;
 }
 function removeItem(array, item) {
 	var i = 0;

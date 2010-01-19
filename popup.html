@@ -15,6 +15,7 @@ body {
   width: 150px;
   margin-top: 1px;
 }
+.hide {display: none;}
 a:link{text-decoration: none}
 a:visited{text-decoration: none}
 a:active{text-decoration: none}
@@ -26,10 +27,12 @@ a{color: #0776A0;margin-top:10px}
 </head>
 <body>
 <div id="main">
-<a id="disable" href="#">Disable current site<br/></a>
-<a id="enable" href="#">Enable current site<br/></a>
+<a id="disable" href="#" class="hide">Disable current site<br/></a>
+<a id="enable" href="#" class="hide">Enable current site<br/></a>
 <a id="download" href="#">Update cache</a><br/>
-<em>Please <a id="donate" href="#">donate</a> if you can.</em><br/>
+<a id="enableprivacy" href="#" class="hide">Enable privacy mode<br/></a>
+<a id="disableprivacy" href="#" class="hide">Disable privacy mode<br/></a>
+<em><a id="donate" href="#">Please donate if you can.</a></em><br/>
 <div id="result"></div>
 </div>
 </body>

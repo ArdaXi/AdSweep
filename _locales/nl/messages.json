@@ -1,0 +1,30 @@
+{
+	"extDesc": {
+		"message": "Een online advertentie-opruimer voor je favoriete browser.",
+		"description": "Description for the extension."
+	},
+	"disableSite": {
+		"message": "Schakel huidige site uit",
+		"description": "Used in the popup."
+	},
+	"enableSite": {
+		"message": "Schakel huidige site in",
+		"description": "Used in the popup."
+	},
+	"disablePrivacy": {
+		"message": "Schakel privacy modus uit",
+		"description": "Used in the popup."
+	},
+	"enablePrivacy": {
+		"message": "Schakel privacy modus in",
+		"description": "Used in the popup."
+	},
+	"updateCache": {
+		"message": "Werk cache bij",
+		"description": "Used in the popup."
+	},
+	"donateReq": {
+		"message": "Doneer alsjeblieft als je het kunt.",
+		"description": "Donation request."
+	}
+}

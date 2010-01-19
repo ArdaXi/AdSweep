@@ -1,0 +1,30 @@
+{
+	"extDesc": {
+		"message": "An online ad-removal tool for your favourite web browser.",
+		"description": "Description for the extension."
+	},
+	"disableSite": {
+		"message": "Disable current site",
+		"description": "Used in the popup."
+	},
+	"enableSite": {
+		"message": "Enable current site",
+		"description": "Used in the popup."
+	},
+	"disablePrivacy": {
+		"message": "Disable privacy mode",
+		"description": "Used in the popup."
+	},
+	"enablePrivacy": {
+		"message": "Enable privacy mode",
+		"description": "Used in the popup."
+	},
+	"updateCache": {
+		"message": "Update cache",
+		"description": "Used in the popup."
+	},
+	"donateReq": {
+		"message": "Please donate if you can.",
+		"description": "Donation request."
+	}
+}
