@@ -13,6 +13,7 @@ chrome.extension.onRequest.addListener(function(request, sender, sendResponse) {
 		$("#result").text(request.message);
 	else if(request.purpose == "pstatus")
 	{
+		$("#xable").show();
 		if(request.status == "enabled") {
 			$("#enable").hide();
 			$("#disable").show();
@@ -20,6 +21,11 @@ chrome.extension.onRequest.addListener(function(request, sender, sendResponse) {
 		else if(request.status == "disabled") {
 			$("#disable").hide();
 			$("#enable").show();
+		}
+		else if(request.status == "hdisabled") {
+			$("#enable").hide();
+			$("#disable").hide();
+			$("#xable").hide();
 		}
 		if(request.live == "on") {
 			$("#enable2").hide();

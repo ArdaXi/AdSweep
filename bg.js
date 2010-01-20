@@ -52,7 +52,9 @@ var requestListener = function(request, sender, sendResponse) {
 			if(localStorage["live"] == undefined)
 				localStorage["live"] = "off";
 			var domain = tab2domain(tab);
-			if(localStorage["exceptions"] && localStorage["exceptions"].indexOf(domain) != -1)
+			if(tab.url.substr(0,5) != "http:")
+				chrome.extension.sendRequest({"purpose":"pstatus","status":"hdisabled","live":localStorage["live"]});
+			else if(localStorage["exceptions"] && localStorage["exceptions"].indexOf(domain) != -1)
 				chrome.extension.sendRequest({"purpose":"pstatus","status":"disabled","live":localStorage["live"]});
 			else
 				chrome.extension.sendRequest({"purpose":"pstatus","status":"enabled","live":localStorage["live"]});
@@ -72,6 +74,15 @@ var requestListener = function(request, sender, sendResponse) {
 	}
 	else if(request.purpose == "live") {
 		localStorage["live"] = request.mode;
+		chrome.tabs.getSelected(null, function(tab) {
+			if(localStorage["exceptions"] && localStorage["exceptions"].indexOf(domain) != -1 || tab.url.substr(0,5) != "http:")
+				return;
+			if(localStorage["live"] == "on") {
+				chrome.browserAction.setIcon({"path":"icon32.live.png"});
+			}
+			else
+				chrome.browserAction.setIcon({"path":"icon32.png"});
+		});
 		chrome.extension.sendRequest({"purpose":"pstatus","live":localStorage["live"]});
 	}
 	sendResponse({});
@@ -84,6 +95,8 @@ var onUpdated = function(tabId, changeInfo, tab) {
 		chrome.browserAction.setIcon({"path":"icon32.gray.png","tabId":tabId});
 		return;
 	}
+	if(localStorage["live"] == "on")
+		chrome.browserAction.setIcon({"path":"icon32.live.png"});
 	var common;
 	if(localStorage['common'])
 		 common = JSON.parse(localStorage['common']);
@@ -115,9 +128,4 @@ var onUpdated = function(tabId, changeInfo, tab) {
 		var site = {"css":data.css,"js":data.js};
 		localStorage[data.site] = JSON.stringify(site);
 	});
-};
-var onSelected = function(tabId, changeInfo, tab) {
-	var domain = tab2domain(tab);
-	if(localStorage["exceptions"] && localStorage["exceptions"].indexOf(domain) != -1)
-		chrome.browserAction.setIcon({"path":"icon32.gray.png","tabId":tabId});
 };
