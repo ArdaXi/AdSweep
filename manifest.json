@@ -3,12 +3,12 @@
 	"version": "2.0.9",
 	"update_url": "http://arienh4.net/AdSweep-beta.crx",
 	"description": "__MSG_extDesc__",
-	"icons": { "16": "icon16.png",
-		"32": "icon32.png",
-		"48": "icon48.png",
-		"128": "icon128.png" },
+	"icons": { "16": "icons/icon16.png",
+		"32": "icons/icon32.png",
+		"48": "icons/icon48.png",
+		"128": "icons/icon128.png" },
 	"browser_action": {
-		"default_icon": "icon32.png",
+		"default_icons": "icons/icon32.png",
 		"default_title": "AdSweep",
 		"popup": "popup.html"
 	},

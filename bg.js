@@ -26,7 +26,7 @@ var requestListener = function(request, sender, sendResponse) {
 			{
 				chrome.extension.sendRequest({"purpose":"pstatus","status":"disabled"});
 				chrome.extension.sendRequest({"purpose":"popup","message":"Disabled. You need to refresh before it'll take effect."});
-				chrome.browserAction.setIcon({"path":"icon32.gray.png","tabId":tab.id});
+				chrome.browserAction.setIcon({"path":"icons/icon32.gray.png","tabId":tab.id});
 			}
 			else
 				chrome.extension.sendRequest({"purpose":"popup","message":"Something went wrong, please try again."});
@@ -41,7 +41,7 @@ var requestListener = function(request, sender, sendResponse) {
 			{
 				chrome.extension.sendRequest({"purpose":"pstatus","status":"enabled"});
 				chrome.extension.sendRequest({"purpose":"popup","message":"Re-enabled. You'll need to refresh before it'll take effect."});
-				chrome.browserAction.setIcon({"path":"icon32.png","tabId":tab.id});
+				chrome.browserAction.setIcon({"path":"icons/icon32.png","tabId":tab.id});
 			}
 			else
 				chrome.extension.sendRequest({"purpose":"popup","message":"Something went wrong, please try again."});
@@ -74,29 +74,27 @@ var requestListener = function(request, sender, sendResponse) {
 	}
 	else if(request.purpose == "live") {
 		localStorage["live"] = request.mode;
-		chrome.tabs.getSelected(null, function(tab) {
-			if(localStorage["exceptions"] && localStorage["exceptions"].indexOf(domain) != -1 || tab.url.substr(0,5) != "http:")
-				return;
-			if(localStorage["live"] == "on") {
-				chrome.browserAction.setIcon({"path":"icon32.live.png"});
-			}
-			else
-				chrome.browserAction.setIcon({"path":"icon32.png"});
-		});
 		chrome.extension.sendRequest({"purpose":"pstatus","live":localStorage["live"]});
+		if(request.disabled == true)
+			return;
+		if(localStorage["live"] == "on")
+			chrome.browserAction.setIcon({"path":"icons/icon32.live.png"});
+		else
+			chrome.browserAction.setIcon({"path":"icons/icon32.png"});
 	}
 	sendResponse({});
 };
 var onUpdated = function(tabId, changeInfo, tab) {
 	if(changeInfo.status != "loading") return;
 	var domain = tab2domain(tab);
-	console.log(domain);
 	if(localStorage["exceptions"] && localStorage["exceptions"].indexOf(domain) != -1 || tab.url.substr(0,5) != "http:") {
-		chrome.browserAction.setIcon({"path":"icon32.gray.png","tabId":tabId});
+		chrome.browserAction.setIcon({"path":"icons/icon32.gray.png","tabId":tabId});
 		return;
 	}
 	if(localStorage["live"] == "on")
-		chrome.browserAction.setIcon({"path":"icon32.live.png"});
+		chrome.browserAction.setIcon({"path":"icons/icon32.live.png"});
+	else
+		chrome.browserAction.setIcon({"path":"icons/icon32.png"});
 	var common;
 	if(localStorage['common'])
 		 common = JSON.parse(localStorage['common']);

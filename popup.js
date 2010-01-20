@@ -1,3 +1,4 @@
+var disabled = false;
 $(document).ready(function(){
 	$("#disable").text(chrome.i18n.getMessage("disableSite")).click(disable);
 	$("#enable").text(chrome.i18n.getMessage("enableSite")).click(enable);
@@ -13,19 +14,22 @@ chrome.extension.onRequest.addListener(function(request, sender, sendResponse) {
 		$("#result").text(request.message);
 	else if(request.purpose == "pstatus")
 	{
-		$("#xable").show();
 		if(request.status == "enabled") {
 			$("#enable").hide();
 			$("#disable").show();
+			$("#xable").show();
 		}
 		else if(request.status == "disabled") {
 			$("#disable").hide();
 			$("#enable").show();
+			$("#xable").show();
+			disabled = true;
 		}
 		else if(request.status == "hdisabled") {
 			$("#enable").hide();
 			$("#disable").hide();
 			$("#xable").hide();
+			disabled = true;
 		}
 		if(request.live == "on") {
 			$("#enable2").hide();
@@ -44,10 +48,10 @@ function enable() {
 	chrome.extension.sendRequest({"purpose" : "enable"});
 }
 function disable2() {
-	chrome.extension.sendRequest({"purpose" : "live","mode" : "off"});
+	chrome.extension.sendRequest({"purpose" : "live","mode" : "off","disabled" : disabled});
 }
 function enable2() {
-	chrome.extension.sendRequest({"purpose" : "live","mode" : "on"});
+	chrome.extension.sendRequest({"purpose" : "live","mode" : "on","disabled" : disabled});
 }
 function download() {
 	chrome.extension.sendRequest({"purpose" : "cache"});
