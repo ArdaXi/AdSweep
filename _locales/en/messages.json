@@ -4,11 +4,11 @@
 		"description": "Description for the extension."
 	},
 	"disableSite": {
-		"message": "Disable current site",
+		"message": "Disable ad-blocking for this site",
 		"description": "Used in the popup."
 	},
 	"enableSite": {
-		"message": "Enable current site",
+		"message": "Enable ad-blocking for this site",
 		"description": "Used in the popup."
 	},
 	"disable2": {

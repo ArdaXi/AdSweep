@@ -4,11 +4,11 @@
 		"description": "Description for the extension."
 	},
 	"disableSite": {
-		"message": "Schakel huidige site uit",
+		"message": "Schakel blokkeren van ads op huidige site uit",
 		"description": "Used in the popup."
 	},
 	"enableSite": {
-		"message": "Schakel huidige site in",
+		"message": "Schakel blokkeren van ads op huidige site in",
 		"description": "Used in the popup."
 	},
 	"disable2": {
