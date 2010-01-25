@@ -1,3 +1,4 @@
+var icon;
 $(document).ready(function(){
 	chrome.extension.onRequest.addListener(requestListener);
 	chrome.tabs.onUpdated.addListener(onUpdated);
@@ -13,6 +14,10 @@ $(document).ready(function(){
 		});
 		localStorage["installed"] = "true";
 	}
+	if(localStorage["live"] == "on")
+		icon = "icons/icon32.live.png";
+	else
+		icon = "icons/icon32.png";
 });
 var requestListener = function(request, sender, sendResponse) { 
 	if(request.purpose == "disable") {
@@ -25,8 +30,9 @@ var requestListener = function(request, sender, sendResponse) {
 			if(localStorage["exceptions"] && localStorage["exceptions"].indexOf(site) != -1)
 			{
 				chrome.extension.sendRequest({"purpose":"pstatus","status":"disabled"});
-				chrome.extension.sendRequest({"purpose":"popup","message":"Disabled. You need to refresh before it'll take effect."});
+				chrome.extension.sendRequest({"purpose":"popup","message":"Disabled."});
 				chrome.browserAction.setIcon({"path":"icons/icon32.gray.png","tabId":tab.id});
+				chrome.tabs.update(tab.id, {"url":tab.url});
 			}
 			else
 				chrome.extension.sendRequest({"purpose":"popup","message":"Something went wrong, please try again."});
@@ -39,9 +45,10 @@ var requestListener = function(request, sender, sendResponse) {
 			localStorage["exceptions"] = removeItem(array, site).join();
 			if(localStorage["exceptions"] && localStorage["exceptions"].indexOf(site) == -1)
 			{
+				chrome.browserAction.setIcon({"path":icon,"tabId":tab.id});
 				chrome.extension.sendRequest({"purpose":"pstatus","status":"enabled"});
-				chrome.extension.sendRequest({"purpose":"popup","message":"Re-enabled. You'll need to refresh before it'll take effect."});
-				chrome.browserAction.setIcon({"path":"icons/icon32.png","tabId":tab.id});
+				chrome.extension.sendRequest({"purpose":"popup","message":"Re-enabled."});
+				chrome.tabs.update(tab.id, {"url":tab.url});
 			}
 			else
 				chrome.extension.sendRequest({"purpose":"popup","message":"Something went wrong, please try again."});
@@ -51,13 +58,15 @@ var requestListener = function(request, sender, sendResponse) {
 		chrome.tabs.getSelected(null, function(tab) {
 			if(localStorage["live"] == undefined)
 				localStorage["live"] = "off";
+			if(localStorage["js"] == undefined)
+				localStorage["js"] = "off";
 			var domain = tab2domain(tab);
 			if(tab.url.substr(0,5) != "http:")
-				chrome.extension.sendRequest({"purpose":"pstatus","status":"hdisabled","live":localStorage["live"]});
+				chrome.extension.sendRequest({"purpose":"pstatus","status":"hdisabled","live":localStorage["live"],"js":localStorage["js"]});
 			else if(localStorage["exceptions"] && localStorage["exceptions"].indexOf(domain) != -1)
-				chrome.extension.sendRequest({"purpose":"pstatus","status":"disabled","live":localStorage["live"]});
+				chrome.extension.sendRequest({"purpose":"pstatus","status":"disabled","live":localStorage["live"],"js":localStorage["js"]});
 			else
-				chrome.extension.sendRequest({"purpose":"pstatus","status":"enabled","live":localStorage["live"]});
+				chrome.extension.sendRequest({"purpose":"pstatus","status":"enabled","live":localStorage["live"],"js":localStorage["js"]});
 		});
 	}
 	else if(request.purpose == "cache") {
@@ -78,9 +87,14 @@ var requestListener = function(request, sender, sendResponse) {
 		if(request.disabled == true)
 			return;
 		if(localStorage["live"] == "on")
-			chrome.browserAction.setIcon({"path":"icons/icon32.live.png"});
+			icon = "icons/icon32.live.png";
 		else
-			chrome.browserAction.setIcon({"path":"icons/icon32.png"});
+			icon = "icons/icon32.png";
+		chrome.browserAction.setIcon({"path":icon});
+	}
+	else if(request.purpose == "js") {
+		localStorage["js"] = request.mode;
+		chrome.extension.sendRequest({"purpose":"pstatus","js":localStorage["js"]});
 	}
 	sendResponse({});
 };
@@ -91,36 +105,35 @@ var onUpdated = function(tabId, changeInfo, tab) {
 		chrome.browserAction.setIcon({"path":"icons/icon32.gray.png","tabId":tabId});
 		return;
 	}
-	if(localStorage["live"] == "on")
-		chrome.browserAction.setIcon({"path":"icons/icon32.live.png"});
-	else
-		chrome.browserAction.setIcon({"path":"icons/icon32.png"});
+	chrome.browserAction.setIcon({"path":icon});
 	var common;
 	if(localStorage['common'])
 		 common = JSON.parse(localStorage['common']);
 	var domrules;
 	if(localStorage[domain]) {
 		domrules = JSON.parse(localStorage[domain]);
+		domrules.js = (localStorage["js"] == "on") ? undefined : domrules.js;
 		insertCode(tabId, domrules.css, domrules.js);
 	}
-	if(common)
-		insertCode(tabId, common.css, common.js);
+	if(common) {
+		chrome.tabs.insertCSS(tabId, {code:common.css});
+		if(localStorage["js"] == "on")
+			chrome.tabs.executeScript(tabId, {code:common.js});
+	}
 	if(localStorage["live"] == "off") return;
 	$.getJSON("http://json.adsweep.org/adengine.php?domain="+domain+"&callback=?", function(data){
 		data.commonjs = Base64.decode(data.commonjs);
 		data.js = Base64.decode(data.js);
 		var css, js;
-		if(common.css != data.common)
-			css = data.common;
-		if(common.js != data.commonjs)
-			js = data.commonjs;
-		insertCode(tabId, css, js);
+		if(common == undefined || common.css != data.common)
+			chrome.tabs.insertCSS(tabId, {code:data.common});
+		if(common == undefined || common.js != data.commonjs && localStorage["js"] == "on")
+			chrome.tabs.executeScript(tabId, {code:data.commonjs});
 		if(!data.site || data.site == "") return;
 		if(domrules.css != data.css)
-			css = data.css;
-		if(domrules.js != data.js)
-			js = data.js;
-		insertCode(tabId, css, js);
+			chrome.tabs.insertCSS(tabId, {code:data.css});
+		if(domrules.js != data.js && localStorage["js"] == "on")
+			chrome.tabs.executeScript(tabId, {code:data.js});
 		var common = {"css":data.common,"js":data.commonjs};
 		localStorage["common"] = JSON.stringify(common);
 		var site = {"css":data.css,"js":data.js};

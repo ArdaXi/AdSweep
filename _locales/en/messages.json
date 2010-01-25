@@ -19,12 +19,24 @@
 		"message": "Enable live mode",
 		"description": "Used in the popup."
 	},
+	"disablejs": {
+		"message": "Disable Javascript-based blocking",
+		"description": "Used in the popup."
+	},
+	"enablejs": {
+		"message": "Enable Javascript-based blocking",
+		"description": "Used in the popup."
+	},
 	"updateCache": {
 		"message": "Update cache",
 		"description": "Used in the popup."
 	},
 	"donateReq": {
-		"message": "Please donate if you can.",
+		"message": "Please donate if you can",
 		"description": "Donation request."
+	},
+	"faq": {
+		"message": "For more info, click here",
+		"description": "Link to FAQ."
 	}
 }

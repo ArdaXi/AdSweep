@@ -19,6 +19,14 @@
 		"message": "Schakel live modus in",
 		"description": "Used in the popup."
 	},
+	"disablejs": {
+		"message": "Schakel blokkering met Javascript uit",
+		"description": "Used in the popup."
+	},
+	"enablejs": {
+		"message": "Schakel blokkering met Javascript in",
+		"description": "Used in the popup."
+	},
 	"updateCache": {
 		"message": "Werk cache bij",
 		"description": "Used in the popup."
